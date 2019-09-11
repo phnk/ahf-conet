@@ -8,13 +8,19 @@
         <version>0.1.0</version>
     </parent>
 
-    <artifactId>client</artifactId>
+    <artifactId>service</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>eu.arrowhead</groupId>
             <artifactId>client-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.5.2</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
