@@ -16,27 +16,23 @@
 
     <repositories>
         <repository>
-            <id>local-maven-repo</id>
-            <url>file:///${project.basedir}/local-maven-repo</url>
+            <id>arrowhead-github-repo-client-library-java-spring</id>
+            <url>https://raw.githubusercontent.com/arrowhead-f/client-library-java-spring/master/client-mvn-repo</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
     </repositories>
 
     <properties>
-        <arrowhead.version>4.0</arrowhead.version>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <arrowhead.version>4.1.3.2</arrowhead.version>
+        <maven.compiler.source>1.11</maven.compiler.source>
+        <maven.compiler.target>1.11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>eu.arrowhead</groupId>
-                <artifactId>client-common</artifactId>
-                <version>${arrowhead.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <build>
         <plugins>
