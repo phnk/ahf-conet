@@ -4,7 +4,7 @@ import eu.arrowhead.client.library.ArrowheadService;
 import eu.arrowhead.common.dto.shared.ServiceRegistryRequestDTO;
 
 public class Main {
-    public void main(final String[] args) {
+    public static void main(final String[] args) {
         final var service = new ArrowheadService();
 
         final var req = new ServiceRegistryRequestDTO();
