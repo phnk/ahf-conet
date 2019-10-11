@@ -16,14 +16,8 @@
 
     <repositories>
         <repository>
-            <id>arrowhead-github-repo-client-library-java-spring</id>
-            <url>https://raw.githubusercontent.com/arrowhead-f/client-library-java-spring/master/client-mvn-repo</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
+            <id>arrowhead-client</id>
+            <url>https://github.com/arrowhead-f/client-library-java-spring/raw/master/client-mvn-repo</url>
         </repository>
     </repositories>
 
@@ -44,6 +38,11 @@
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.1.8.RELEASE</version>
             </plugin>
         </plugins>
     </build>
