@@ -63,7 +63,7 @@ services:
       - ./excloud1/configs/eventhandler.properties:/eventhandler/application.properties
     ports:
       - 8455:8455
-  
+
   excloud1_gatekeeper:
     container_name: excloud1_gatekeeper
     image: portus.arrowhead-ci.tmit.bme.hu/arrowhead/gatekeeper:latest
