@@ -12,7 +12,7 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=123456
     volumes:
-      - consumer_mysql:/var/lib/mysql
+      - consumer_mysql_vol:/var/lib/mysql
       - ./create_empty_arrowhead_db.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - 3306:3306
@@ -118,10 +118,10 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=123456
     volumes:
-      - producer_mysql:/var/lib/mysql
+      - producer_mysql_vol:/var/lib/mysql
       - ./create_empty_arrowhead_db.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - 3306:3306
+      - 3307:3307
 
   producer_authorization:
     container_name: producer_authorization
@@ -215,7 +215,7 @@ services:
       - 8548:8548
 
 volumes:
-  consumer_mysql:
+  consumer_mysql_vol:
     external: true
-  producer_mysql:
+  producer_mysql_vol:
     external: true
