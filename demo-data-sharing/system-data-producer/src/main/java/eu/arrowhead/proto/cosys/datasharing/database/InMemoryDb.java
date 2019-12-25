@@ -1,0 +1,64 @@
+package eu.arrowhead.proto.cosys.datasharing.database;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+
+public class InMemoryDb {
+    private int threshold;
+    private HashMap<String, String> inMemoryMap;
+    private HashMap<String, Integer> offerMap;
+
+    public InMemoryDb() {
+        threshold = 1000;
+        inMemoryMap = new HashMap<>();
+        offerMap = new HashMap<>();
+
+        // loading random data into the hashtable for testing
+        String[] fruits = new String[]{"Orange", "Apple", "Pear", "Strawberry"};
+
+        for (String fruit : fruits) {
+            try {
+                this.putIntoHashTable(this.hashKey(fruit), fruit);
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // subscribe to a event
+
+    }
+
+    public void putIntoHashTable(String key, String value) {
+        this.inMemoryMap.put(key, value);
+    }
+
+    // Easier way to change hash function
+    private String hashKey(String key) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        byte[] hashInBytes = md.digest(key.getBytes(StandardCharsets.UTF_8));
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < hashInBytes.length; i++) {
+            sb.append(Integer.toString((hashInBytes[i] & 0xff) + 0x100, 16).substring(1));
+        }
+        String s = sb.toString();
+        return s;
+    }
+
+    public int getTreshold() {
+        return threshold;
+    }
+
+    public void setThreshold(int newThreshold) {
+        threshold = newThreshold;
+    }
+
+    public String getValueFromKey(String key) {
+        return inMemoryMap.get(key);
+    }
+
+    public HashMap<String, Integer> getOfferMap() {
+        return offerMap;
+    }
+}

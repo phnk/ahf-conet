@@ -1,33 +1,32 @@
 package eu.arrowhead.proto.cosys.datasharing;
 
-import java.io.IOException;
-import java.security.PublicKey;
-import java.security.PrivateKey;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.util.Base64;
-import java.util.List;
-import java.util.HashMap;
-
 import eu.arrowhead.client.library.ArrowheadService;
 import eu.arrowhead.client.library.config.ApplicationInitListener;
 import eu.arrowhead.client.library.util.ClientCommonConstants;
 import eu.arrowhead.common.CommonConstants;
 import eu.arrowhead.common.Utilities;
 import eu.arrowhead.common.core.CoreSystem;
+import eu.arrowhead.common.dto.shared.EventDTO;
 import eu.arrowhead.common.dto.shared.ServiceRegistryRequestDTO;
 import eu.arrowhead.common.dto.shared.ServiceSecurityType;
 import eu.arrowhead.common.dto.shared.SystemRequestDTO;
 import eu.arrowhead.common.exception.ArrowheadException;
-import eu.arrowhead.proto.cosys.datasharing.security.DataProducerSecurityConfig;
-
+import eu.arrowhead.proto.cosys.datasharing.database.InMemoryDb;
+import eu.arrowhead.proto.cosys.datasharing.security.ProducerSecurityConfig;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 
 @Component
@@ -37,7 +36,7 @@ public class DataProducerListener extends ApplicationInitListener {
     private ArrowheadService arrowheadService;
 
     @Autowired
-    private DataProducerSecurityConfig dataProducerSecurityConfig;
+    private ProducerSecurityConfig producerSecurityConfig;
 
     @Value(ClientCommonConstants.$TOKEN_SECURITY_FILTER_ENABLED_WD)
     private boolean tokenSecurityFilterEnabled;
@@ -54,20 +53,21 @@ public class DataProducerListener extends ApplicationInitListener {
     @Value(ClientCommonConstants.$CLIENT_SERVER_PORT_WD)
     private Integer mySystemPort;
 
+    private final Logger logger = LogManager.getLogger(DataProducerListener.class);
+
+    @Bean( DataProviderConstants.NOTIFICATION_QUEUE )
+    public ConcurrentLinkedQueue<EventDTO> getNotificationQueue() {
+        return new ConcurrentLinkedQueue<>();
+    }
+
+    @Bean( DataProviderConstants.IN_MEMORY_DB )
+    public InMemoryDb getInMemoryDb() {
+        return new InMemoryDb();
+    }
+
     @Override
     protected void customInit(final ContextRefreshedEvent event) {
         checkCoreSystemReachability(CoreSystem.SERVICE_REGISTRY);
-
-        if (sslEnabled && tokenSecurityFilterEnabled) {
-            checkCoreSystemReachability(CoreSystem.AUTHORIZATION);
-
-            arrowheadService.updateCoreServiceURIs(CoreSystem.AUTHORIZATION);
-
-            setTokenSecurityFilter();
-
-        } else {
-            // log something
-        }
 
         // register in the service reg
         final ServiceRegistryRequestDTO createProviderServiceRequest =
@@ -82,10 +82,10 @@ public class DataProducerListener extends ApplicationInitListener {
                         HttpMethod.GET);
 
         // meta data for our specific context
-        getProviderServiceRequest.getMetadata().put(DataProviderConstants.REQUEST_PARAM_KEY_BRAND,
-                DataProviderConstants.REQUEST_PARAM_KEY_BRAND);
-        getProviderServiceRequest.getMetadata().put(DataProviderConstants.REQUEST_PARAM_KEY_COLOR,
-                DataProviderConstants.REQUEST_PARAM_KEY_COLOR);
+        //getProviderServiceRequest.getMetadata().put(DataProviderConstants.REQUEST_PARAM_KEY_BRAND,
+        //        DataProviderConstants.REQUEST_PARAM_KEY_BRAND);
+        //getProviderServiceRequest.getMetadata().put(DataProviderConstants.REQUEST_PARAM_KEY_COLOR,
+        //        DataProviderConstants.REQUEST_PARAM_KEY_COLOR);
     }
 
     @Override
@@ -111,8 +111,8 @@ public class DataProducerListener extends ApplicationInitListener {
 
         final PrivateKey providerPrivateKey = Utilities.getPrivateKey(keystore, sslProperties.getKeyPassword());
 
-        DataProducerSecurityConfig.getTokenSecurityFilter().setAutorizationPublicKey(authorizationPublicKey);
-        DataProducerSecurityConfig.getTokenSecurityFilter().setMyPrivateKey(providerPrivateKey);
+        producerSecurityConfig.getTokenSecurityFilter().setAuthorizationPublicKey(authorizationPublicKey);
+        producerSecurityConfig.getTokenSecurityFilter().setMyPrivateKey(providerPrivateKey);
 
    }
 
@@ -125,23 +125,14 @@ public class DataProducerListener extends ApplicationInitListener {
         systemRequest.setAddress(mySystemAddress);
         systemRequest.setPort(mySystemPort);
 
-        if (tokenSecurityFilterEnabled) {
-            systemRequest.setAuthenticationInfo(Base64.getEncoder().encodeToString(arrowheadService.getMyPublicKey().getEncoded()));
-            serviceRegistryRequest.setSecure(ServiceSecurityType.TOKEN);
-            serviceRegistryRequest.setInterfaces(List.of(DataProviderConstants.INTERFACE_SECURE));
-        } else if (sslEnabled) {
-           systemRequest.setAuthenticationInfo(Base64.getEncoder().encodeToString(arrowheadService.getMyPublicKey().getEncoded()));
-           serviceRegistryRequest.setSecure(ServiceSecurityType.CERTIFICATE);
-           serviceRegistryRequest.setInterfaces(List.of(DataProviderConstants.INTERFACE_SECURE));
-       } else {
-            serviceRegistryRequest.setSecure(ServiceSecurityType.NOT_SECURE);
-            serviceRegistryRequest.setInterfaces(List.of(DataProviderConstants.INTERFACE_INSECURE));
-        }
+
+        serviceRegistryRequest.setSecure(ServiceSecurityType.NOT_SECURE);
+        serviceRegistryRequest.setInterfaces(List.of(DataProviderConstants.INTERFACE_INSECURE));
 
         serviceRegistryRequest.setProviderSystem(systemRequest);
         serviceRegistryRequest.setServiceUri(serviceUri);
-        serviceRegistryRequest.setMetadata(new HashMap<>());
-        serviceRegistryRequest.getMetadata().put(DataProviderConstants.HTTP_METHOD, httpMethod.name());
+        //serviceRegistryRequest.setMetadata(new HashMap<>());
+        //serviceRegistryRequest.getMetadata().put(DataProviderConstants.HTTP_METHOD, httpMethod.name());
         return serviceRegistryRequest;
 
    }
