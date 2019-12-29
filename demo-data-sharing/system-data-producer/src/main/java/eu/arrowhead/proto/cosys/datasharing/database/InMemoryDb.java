@@ -8,7 +8,7 @@ import java.util.HashMap;
 public class InMemoryDb {
     private int threshold;
     private HashMap<String, String> inMemoryMap;
-    private HashMap<String, Integer> offerMap;
+    private HashMap<String, String> offerMap;
 
     public InMemoryDb() {
         threshold = 1000;
@@ -30,7 +30,7 @@ public class InMemoryDb {
 
     }
 
-    public void putIntoHashTable(String key, String value) {
+    public synchronized void putIntoHashTable(String key, String value) {
         this.inMemoryMap.put(key, value);
     }
 
@@ -46,19 +46,23 @@ public class InMemoryDb {
         return s;
     }
 
-    public int getTreshold() {
+    public synchronized int getTreshold() {
         return threshold;
     }
 
-    public void setThreshold(int newThreshold) {
+    public synchronized void setThreshold(int newThreshold) {
         threshold = newThreshold;
     }
 
-    public String getValueFromKey(String key) {
+    public synchronized String getValueFromKey(String key) {
         return inMemoryMap.get(key);
     }
 
-    public HashMap<String, Integer> getOfferMap() {
+    public synchronized HashMap<String, String> getOfferMap() {
         return offerMap;
+    }
+
+    public synchronized  HashMap<String, String> getInMemoryMap() {
+        return inMemoryMap;
     }
 }

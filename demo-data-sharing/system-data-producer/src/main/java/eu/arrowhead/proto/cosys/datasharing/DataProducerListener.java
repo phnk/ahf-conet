@@ -12,7 +12,9 @@ import eu.arrowhead.common.dto.shared.ServiceSecurityType;
 import eu.arrowhead.common.dto.shared.SystemRequestDTO;
 import eu.arrowhead.common.exception.ArrowheadException;
 import eu.arrowhead.proto.cosys.datasharing.database.InMemoryDb;
-import eu.arrowhead.proto.cosys.datasharing.security.ProducerSecurityConfig;
+import eu.arrowhead.proto.cosys.datasharing.security.SubscriberSecurityConfig;
+import eu.arrowhead.proto.cosys.datasharing.utils.ConfigEventProperites;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +24,13 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 
+
 import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 
@@ -36,7 +41,7 @@ public class DataProducerListener extends ApplicationInitListener {
     private ArrowheadService arrowheadService;
 
     @Autowired
-    private ProducerSecurityConfig producerSecurityConfig;
+    private SubscriberSecurityConfig subscriberSecurityConfig;
 
     @Value(ClientCommonConstants.$TOKEN_SECURITY_FILTER_ENABLED_WD)
     private boolean tokenSecurityFilterEnabled;
@@ -53,6 +58,9 @@ public class DataProducerListener extends ApplicationInitListener {
     @Value(ClientCommonConstants.$CLIENT_SERVER_PORT_WD)
     private Integer mySystemPort;
 
+    @Autowired
+    private ConfigEventProperites configEventProperites;
+
     private final Logger logger = LogManager.getLogger(DataProducerListener.class);
 
     @Bean( DataProviderConstants.NOTIFICATION_QUEUE )
@@ -68,6 +76,20 @@ public class DataProducerListener extends ApplicationInitListener {
     @Override
     protected void customInit(final ContextRefreshedEvent event) {
         checkCoreSystemReachability(CoreSystem.SERVICE_REGISTRY);
+
+        if (sslEnabled && tokenSecurityFilterEnabled) {
+            checkCoreSystemReachability(CoreSystem.AUTHORIZATION);
+            arrowheadService.updateCoreServiceURIs(CoreSystem.AUTHORIZATION);
+        }
+
+        setTokenSecurityFilter();
+
+        setNotificationFilter();
+
+        if (arrowheadService.echoCoreSystem(CoreSystem.EVENT_HANDLER)) {
+            arrowheadService.updateCoreServiceURIs(CoreSystem.EVENT_HANDLER);
+            subscribeToPresetEvents();
+        }
 
         // register in the service reg
         final ServiceRegistryRequestDTO createProviderServiceRequest =
@@ -94,27 +116,30 @@ public class DataProducerListener extends ApplicationInitListener {
     }
 
     private void setTokenSecurityFilter() {
-        final PublicKey authorizationPublicKey = arrowheadService.queryAuthorizationPublicKey();
+        if(!tokenSecurityFilterEnabled || !sslEnabled) {
+            logger.info("TokenSecurityFilter in not active");
+        } else {
+            final PublicKey authorizationPublicKey = arrowheadService.queryAuthorizationPublicKey();
+            if (authorizationPublicKey == null) {
+                throw new ArrowheadException("Authorization public key is null");
+            }
 
-        if (authorizationPublicKey == null) {
-            throw new ArrowheadException("Authorization public key is null");
+            KeyStore keystore;
+            try {
+                keystore = KeyStore.getInstance(sslProperties.getKeyStoreType());
+                keystore.load(sslProperties.getKeyStore().getInputStream(), sslProperties.getKeyStorePassword().toCharArray());
+            } catch ( final KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException ex) {
+                throw new ArrowheadException(ex.getMessage());
+            }
+            final PrivateKey subscriberPrivateKey = Utilities.getPrivateKey(keystore, sslProperties.getKeyPassword());
+
+            final Map<String, String> eventTypeMap = configEventProperites.getEventTypeURIMap();
+
+            subscriberSecurityConfig.getTokenSecurityFilter().setEventTypeMap( eventTypeMap );
+            subscriberSecurityConfig.getTokenSecurityFilter().setAuthorizationPublicKey(authorizationPublicKey);
+            subscriberSecurityConfig.getTokenSecurityFilter().setMyPrivateKey(subscriberPrivateKey);
         }
-
-        KeyStore keystore;
-
-        try {
-            keystore = KeyStore.getInstance(sslProperties.getKeyStoreType());
-            keystore.load(sslProperties.getKeyStore().getInputStream(), sslProperties.getKeyStorePassword().toCharArray());
-        } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException ex) {
-            throw new ArrowheadException(ex.getMessage());
-        }
-
-        final PrivateKey providerPrivateKey = Utilities.getPrivateKey(keystore, sslProperties.getKeyPassword());
-
-        producerSecurityConfig.getTokenSecurityFilter().setAuthorizationPublicKey(authorizationPublicKey);
-        producerSecurityConfig.getTokenSecurityFilter().setMyPrivateKey(providerPrivateKey);
-
-   }
+    }
 
    private ServiceRegistryRequestDTO createServiceRegistryRequest(final String serviceDefinition, final String serviceUri, HttpMethod httpMethod) {
         final ServiceRegistryRequestDTO serviceRegistryRequest = new ServiceRegistryRequestDTO();
@@ -136,4 +161,69 @@ public class DataProducerListener extends ApplicationInitListener {
         return serviceRegistryRequest;
 
    }
+
+    private void setNotificationFilter() {
+        logger.debug( "setNotificationFilter started..." );
+
+        final Map<String, String> eventTypeMap = configEventProperites.getEventTypeURIMap();
+
+        subscriberSecurityConfig.getNotificationFilter().setEventTypeMap( eventTypeMap );
+        subscriberSecurityConfig.getNotificationFilter().setServerCN( arrowheadService.getServerCN() );
+
+    }
+
+    private void subscribeToPresetEvents() {
+
+        final Map<String, String> eventTypeMap = configEventProperites.getEventTypeURIMap();
+
+        if( eventTypeMap == null) {
+
+            logger.info("No preset events to subscribe.");
+
+        } else {
+
+            final SystemRequestDTO subscriber = new SystemRequestDTO();
+            subscriber.setSystemName( mySystemName);
+            subscriber.setAddress( mySystemAddress );
+            subscriber.setPort( mySystemPort );
+            if (sslEnabled) {
+
+                subscriber.setAuthenticationInfo( Base64.getEncoder().encodeToString( arrowheadService.getMyPublicKey().getEncoded()) );
+
+            }
+            for (final String eventType  : eventTypeMap.keySet()) {
+
+                try {
+
+                    arrowheadService.unsubscribeFromEventHandler(eventType, mySystemName, mySystemAddress, mySystemPort);
+
+                } catch (final Exception ex) {
+
+                    logger.debug("Exception happend in subscription initalization " + ex);
+                }
+
+                try {
+
+                    arrowheadService.subscribeToEventHandler( SubscriberUtilities.createSubscriptionRequestDTO( eventType, subscriber, eventTypeMap.get( eventType ) ) );
+
+                } catch ( final InvalidParameterException ex) {
+
+                    if( ex.getMessage().contains( "Subscription violates uniqueConstraint rules" )) {
+
+                        logger.debug("Subscription is already in DB");
+
+                    } else {
+
+                        logger.debug(ex.getMessage());
+                        logger.debug(ex);
+                    }
+
+                } catch ( final Exception ex) {
+
+                    logger.debug("Could not subscribe to EventType: " + eventType );
+                }
+            }
+
+        }
+    }
 }

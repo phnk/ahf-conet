@@ -27,17 +27,14 @@ public class DataProducerSubThread extends Thread {
                 if (notificationQueue.peek() != null) {
                     for (final EventDTO event : notificationQueue) {
                         if (event.getEventType().equals(DataProviderConstants.REQUEST_RECIEVED)) {
-                            if (Integer.parseInt(event.getMetaData().get("Offer")) <= this.threshold) {
+                            if (Integer.parseInt(event.getMetaData().get("Offer")) >= this.threshold) {
                                 // save the offer
-                                inMemoryDb.getOfferMap().put(event.getMetaData().get(DataProviderConstants.REQUEST_RANDOM_IDENTIFIER), Integer.parseInt((event.getMetaData().get("Offer"))));
-
+                                String randomIdentifier = event.getMetaData().get(DataProviderConstants.REQUEST_RANDOM_IDENTIFIER);
+                                String hash = event.getMetaData().get("Hash");
+                                inMemoryDb.getOfferMap().put(randomIdentifier, hash);
                             }
-
-                            else {
-                                // reject offer somehow some way
-                            }
-
-
+                        } else if (event.getEventType().equals(DataProviderConstants.REQUEST_STOP)) {
+                            interrupted = true;
                         }
                     }
                     notificationQueue.clear();

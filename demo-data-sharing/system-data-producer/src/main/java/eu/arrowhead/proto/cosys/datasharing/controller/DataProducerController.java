@@ -21,14 +21,14 @@ public class DataProducerController {
     private InMemoryDb inMemoryDb;
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody public Integer directRequest(@RequestParam(name = "randomIdentifier" , required = true) final String randomIdentifier) {
+    @ResponseBody public String directRequest(@RequestParam(name = "randomIdentifier" , required = true) final String randomIdentifier) {
         if (inMemoryDb.getOfferMap().containsKey(randomIdentifier)) {
-            // throw some error
-
+            String hashValue = inMemoryDb.getOfferMap().remove(randomIdentifier);
+            String tempValue = inMemoryDb.getValueFromKey(hashValue);
+            return tempValue;
         }
 
-        Integer tempValue = inMemoryDb.getOfferMap().remove(randomIdentifier);
-        return tempValue;
+        return "Identifier not found";
     }
 
     @PostMapping(path = DataProviderConstants.REQUEST_RECEIVED_NOTIFICATION_URI)
@@ -42,6 +42,11 @@ public class DataProducerController {
     @GetMapping(path = "/echo")
     @ResponseBody public String echo() {
         return "echo";
+    }
+
+    @GetMapping(path = "/get-all")
+    @ResponseBody public String test() {
+        return inMemoryDb.getInMemoryMap().toString();
     }
 
 }

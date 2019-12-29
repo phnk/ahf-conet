@@ -16,5 +16,7 @@ public class DataProviderConstants {
     public static final String THRESHOLD = "1000";
     public static final String IN_MEMORY_DB = "IN_MEMORY_DB";
     public static final String REQUEST_RANDOM_IDENTIFIER = "rand-ident";
+    public static final String REQUEST_STOP = "REQUEST_STOP";
+    public static final String DEFAULT_EVENT_NOTIFICATION_BASE_URI = "/notify";
 }
 
