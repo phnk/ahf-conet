@@ -7,13 +7,16 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConfigurationProperties(prefix = "event")
-public class ConfigEventProperites {
+public class ConfigEventProperties {
 
     //=================================================================================================
     // members
 
     private Map<String, String> eventTypeURIMap;
 
+    public ConfigEventProperties() {
+
+    }
     //=================================================================================================
     // methods
 

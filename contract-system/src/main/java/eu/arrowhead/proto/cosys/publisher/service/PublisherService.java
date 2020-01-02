@@ -3,10 +3,20 @@ package eu.arrowhead.proto.cosys.publisher.service;
 import eu.arrowhead.client.library.ArrowheadService;
 import eu.arrowhead.client.library.util.ClientCommonConstants;
 import eu.arrowhead.common.CommonConstants;
-import eu.arrowhead.proto.cosys.ContactSystemConstants;
+import eu.arrowhead.common.Utilities;
+import eu.arrowhead.common.dto.shared.EventPublishRequestDTO;
+import eu.arrowhead.common.dto.shared.SystemRequestDTO;
+import jdk.jfr.Event;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import eu.arrowhead.proto.cosys.publisher.event.PresetEventType;
+
+import java.time.ZonedDateTime;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class PublisherService {
@@ -27,7 +37,29 @@ public class PublisherService {
     private ArrowheadService arrowheadService;
 
     // https://github.com/arrowhead-f/sos-examples-spring/blob/master/demo-car-with-events/demo-car-provider-with-publishing/src/main/java/eu/arrowhead/client/skeleton/publisher/service/PublisherService.java
-    public void publish() {
-        // TODO: implement
+    public void publish(final PresetEventType eventType, final HashMap<String, String> metadata,final String payload) {
+        final EventPublishRequestDTO request = getPublishRequest(eventType, metadata, payload);
+        arrowheadService.publishToEventHandler(request);
+    }
+
+    private EventPublishRequestDTO getPublishRequest(final PresetEventType eventType, final HashMap<String, String> metadata, final String payload) {
+        final String timeStamp = Utilities.convertZonedDateTimeToUTCString(ZonedDateTime.now());
+
+        final EventPublishRequestDTO publishRequestDTO = new EventPublishRequestDTO(eventType.getEventTypeName(), getSource(), metadata, payload, timeStamp);
+
+        return publishRequestDTO;
+    }
+
+    private SystemRequestDTO getSource() {
+        final SystemRequestDTO source = new SystemRequestDTO();
+        source.setSystemName(mySystemName);
+        source.setAddress(mySystemAddress);
+        source.setPort(mySystemPort);
+
+        if (sslEnabled) {
+            source.setAuthenticationInfo(Base64.getEncoder().encodeToString(arrowheadService.getMyPublicKey().getEncoded()));
+        }
+
+        return source;
     }
 }

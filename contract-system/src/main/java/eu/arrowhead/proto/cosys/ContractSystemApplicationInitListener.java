@@ -10,23 +10,26 @@ import eu.arrowhead.common.dto.shared.ServiceRegistryRequestDTO;
 import eu.arrowhead.common.dto.shared.ServiceSecurityType;
 import eu.arrowhead.common.dto.shared.SystemRequestDTO;
 import eu.arrowhead.common.exception.ArrowheadException;
+import eu.arrowhead.proto.cosys.database.DbItem;
 import eu.arrowhead.proto.cosys.security.ProviderSecurityConfig;
+import org.apache.logging.log4j.Level;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 
 @Component
-public class ContactSystemApplicationInitListener extends ApplicationInitListener {
+public class ContractSystemApplicationInitListener extends ApplicationInitListener {
 
     @Autowired
     private ArrowheadService arrowheadService;
@@ -34,7 +37,7 @@ public class ContactSystemApplicationInitListener extends ApplicationInitListene
     @Autowired
     private ProviderSecurityConfig providerSecurityConfig;
 
-    @Value(ClientCommonConstants.TOKEN_SECURITY_FILTER_ENABLED)
+    @Value(ClientCommonConstants.$TOKEN_SECURITY_FILTER_ENABLED_WD)
     private boolean tokenSecurityFilterEnabled;
 
     @Value(CommonConstants.$SERVER_SSL_ENABLED_WD)
@@ -49,6 +52,11 @@ public class ContactSystemApplicationInitListener extends ApplicationInitListene
     @Value(ClientCommonConstants.$CLIENT_SERVER_PORT_WD)
     private Integer mySystemPort;
 
+    @Bean(ContractSystemConstants.OFFER_LIST)
+    public ArrayList<DbItem> getOfferList() {
+        return new ArrayList<>();
+    }
+
     @Override
     protected void customInit(final ContextRefreshedEvent event) {
         checkCoreSystemReachability(CoreSystem.SERVICE_REGISTRY);
@@ -62,7 +70,7 @@ public class ContactSystemApplicationInitListener extends ApplicationInitListene
         }
 
         // register all the different services
-        final ServiceRegistryRequestDTO createServiceRequest = createServiceRegistryRequest(ContactSystemConstants.CREATE_CONTRACT_SERVICE_DEFINITION, ContactSystemConstants.CONTACT_URI, HttpMethod.GET);
+        final ServiceRegistryRequestDTO createServiceRequest = createServiceRegistryRequest(ContractSystemConstants.CREATE_CONTRACT_SERVICE_DEFINITION, ContractSystemConstants.CONTRACT_URI, HttpMethod.GET);
         arrowheadService.forceRegisterServiceToServiceRegistry(createServiceRequest);
 
         if (arrowheadService.echoCoreSystem(CoreSystem.EVENT_HANDLER)) {
@@ -86,7 +94,6 @@ public class ContactSystemApplicationInitListener extends ApplicationInitListene
         }
 
         final PrivateKey providerPrivateKey = Utilities.getPrivateKey(keystore, sslProperties.getKeyPassword());
-
         providerSecurityConfig.getTokenSecurityFilter().setAuthorizationPublicKey(authorizationPublicKey);
         providerSecurityConfig.getTokenSecurityFilter().setMyPrivateKey(providerPrivateKey);
     }
@@ -101,21 +108,21 @@ public class ContactSystemApplicationInitListener extends ApplicationInitListene
 
         if (tokenSecurityFilterEnabled) {
             systemRequest.setAuthenticationInfo(Base64.getEncoder().encodeToString(arrowheadService.getMyPublicKey().getEncoded()));
-            //serviceRegistryRequest.setSecure(ServiceSecurityType.TOKEN);
+            serviceRegistryRequest.setSecure(ServiceSecurityType.TOKEN);
             serviceRegistryRequest.setSecure(ServiceSecurityType.NOT_SECURE);
-            serviceRegistryRequest.setInterfaces(List.of(ContactSystemConstants.INTERFACE_SECURE));
+            serviceRegistryRequest.setInterfaces(List.of(ContractSystemConstants.INTERFACE_SECURE));
         } else if (sslEnabled) {
             systemRequest.setAuthenticationInfo(Base64.getEncoder().encodeToString(arrowheadService.getMyPublicKey().getEncoded()));
             serviceRegistryRequest.setSecure(ServiceSecurityType.CERTIFICATE);
-            serviceRegistryRequest.setInterfaces(List.of(ContactSystemConstants.INTERFACE_SECURE));
+            serviceRegistryRequest.setInterfaces(List.of(ContractSystemConstants.INTERFACE_SECURE));
         } else {
             serviceRegistryRequest.setSecure(ServiceSecurityType.NOT_SECURE);
-            serviceRegistryRequest.setInterfaces(List.of(ContactSystemConstants.INTERFACE_INSECURE));
+            serviceRegistryRequest.setInterfaces(List.of(ContractSystemConstants.INTERFACE_INSECURE));
         }
         serviceRegistryRequest.setProviderSystem(systemRequest);
         serviceRegistryRequest.setServiceUri(serviceUri);
         serviceRegistryRequest.setMetadata(new HashMap<>());
-        serviceRegistryRequest.getMetadata().put(ContactSystemConstants.HTTP_METHOD, httpMethod.name());
+        serviceRegistryRequest.getMetadata().put(ContractSystemConstants.HTTP_METHOD, httpMethod.name());
         return serviceRegistryRequest;
     }
 }

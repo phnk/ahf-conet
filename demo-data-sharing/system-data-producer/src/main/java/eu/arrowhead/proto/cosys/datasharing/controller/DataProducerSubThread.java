@@ -26,7 +26,7 @@ public class DataProducerSubThread extends Thread {
             try {
                 if (notificationQueue.peek() != null) {
                     for (final EventDTO event : notificationQueue) {
-                        if (event.getEventType().equals(DataProviderConstants.REQUEST_RECIEVED)) {
+                        if (event.getEventType().equals(DataProviderConstants.REQUEST_RECEIVED)) {
                             if (Integer.parseInt(event.getMetaData().get("Offer")) >= this.threshold) {
                                 // save the offer
                                 String randomIdentifier = event.getMetaData().get(DataProviderConstants.REQUEST_RANDOM_IDENTIFIER);

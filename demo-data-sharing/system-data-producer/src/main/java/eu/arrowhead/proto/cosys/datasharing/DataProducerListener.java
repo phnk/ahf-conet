@@ -13,7 +13,7 @@ import eu.arrowhead.common.dto.shared.SystemRequestDTO;
 import eu.arrowhead.common.exception.ArrowheadException;
 import eu.arrowhead.proto.cosys.datasharing.database.InMemoryDb;
 import eu.arrowhead.proto.cosys.datasharing.security.SubscriberSecurityConfig;
-import eu.arrowhead.proto.cosys.datasharing.utils.ConfigEventProperites;
+import eu.arrowhead.proto.cosys.datasharing.utils.ConfigEventProperties;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -59,7 +59,7 @@ public class DataProducerListener extends ApplicationInitListener {
     private Integer mySystemPort;
 
     @Autowired
-    private ConfigEventProperites configEventProperites;
+    private ConfigEventProperties configEventProperties;
 
     private final Logger logger = LogManager.getLogger(DataProducerListener.class);
 
@@ -98,10 +98,10 @@ public class DataProducerListener extends ApplicationInitListener {
                         HttpMethod.POST);
         arrowheadService.forceRegisterServiceToServiceRegistry(createProviderServiceRequest);
 
-        ServiceRegistryRequestDTO getProviderServiceRequest =
-                createServiceRegistryRequest(DataProviderConstants.GET_PRODUCER_SERVICE_DEFINITION,
-                        DataProviderConstants.PROVIDER_URI,
-                        HttpMethod.GET);
+        //ServiceRegistryRequestDTO getProviderServiceRequest =
+         //       createServiceRegistryRequest(DataProviderConstants.GET_PRODUCER_SERVICE_DEFINITION,
+         //               DataProviderConstants.PROVIDER_URI,
+         //               HttpMethod.GET);
 
         // meta data for our specific context
         //getProviderServiceRequest.getMetadata().put(DataProviderConstants.REQUEST_PARAM_KEY_BRAND,
@@ -133,7 +133,7 @@ public class DataProducerListener extends ApplicationInitListener {
             }
             final PrivateKey subscriberPrivateKey = Utilities.getPrivateKey(keystore, sslProperties.getKeyPassword());
 
-            final Map<String, String> eventTypeMap = configEventProperites.getEventTypeURIMap();
+            final Map<String, String> eventTypeMap = configEventProperties.getEventTypeURIMap();
 
             subscriberSecurityConfig.getTokenSecurityFilter().setEventTypeMap( eventTypeMap );
             subscriberSecurityConfig.getTokenSecurityFilter().setAuthorizationPublicKey(authorizationPublicKey);
@@ -163,9 +163,9 @@ public class DataProducerListener extends ApplicationInitListener {
    }
 
     private void setNotificationFilter() {
-        logger.debug( "setNotificationFilter started..." );
+        logger.info( "setNotificationFilter started..." );
 
-        final Map<String, String> eventTypeMap = configEventProperites.getEventTypeURIMap();
+        final Map<String, String> eventTypeMap = configEventProperties.getEventTypeURIMap();
 
         subscriberSecurityConfig.getNotificationFilter().setEventTypeMap( eventTypeMap );
         subscriberSecurityConfig.getNotificationFilter().setServerCN( arrowheadService.getServerCN() );
@@ -174,7 +174,7 @@ public class DataProducerListener extends ApplicationInitListener {
 
     private void subscribeToPresetEvents() {
 
-        final Map<String, String> eventTypeMap = configEventProperites.getEventTypeURIMap();
+        final Map<String, String> eventTypeMap = configEventProperties.getEventTypeURIMap();
 
         if( eventTypeMap == null) {
 

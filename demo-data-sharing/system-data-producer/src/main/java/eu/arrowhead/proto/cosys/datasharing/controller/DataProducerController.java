@@ -1,8 +1,10 @@
 package eu.arrowhead.proto.cosys.datasharing.controller;
-
 import eu.arrowhead.common.dto.shared.EventDTO;
+import eu.arrowhead.proto.cosys.datasharing.DataProducerListener;
 import eu.arrowhead.proto.cosys.datasharing.DataProviderConstants;
 import eu.arrowhead.proto.cosys.datasharing.database.InMemoryDb;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,6 +15,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @RestController
 @RequestMapping(DataProviderConstants.PROVIDER_URI)
 public class DataProducerController {
+
+    private final Logger logger = LogManager.getLogger(DataProducerListener.class);
 
     @Resource(name = DataProviderConstants.NOTIFICATION_QUEUE)
     private ConcurrentLinkedQueue<EventDTO> notificationQueue;
@@ -33,10 +37,10 @@ public class DataProducerController {
 
     @PostMapping(path = DataProviderConstants.REQUEST_RECEIVED_NOTIFICATION_URI)
     public void receieveEventRequestRecieved(@RequestBody final EventDTO event) {
-
-         if (event.getEventType() != null) {
-            notificationQueue.add(event);
-         }
+        logger.info("Received a offer");
+        if (event.getEventType() != null) {
+           notificationQueue.add(event);
+        }
     }
 
     @GetMapping(path = "/echo")
