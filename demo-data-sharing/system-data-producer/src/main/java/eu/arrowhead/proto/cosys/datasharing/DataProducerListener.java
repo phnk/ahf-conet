@@ -11,6 +11,7 @@ import eu.arrowhead.common.dto.shared.ServiceRegistryRequestDTO;
 import eu.arrowhead.common.dto.shared.ServiceSecurityType;
 import eu.arrowhead.common.dto.shared.SystemRequestDTO;
 import eu.arrowhead.common.exception.ArrowheadException;
+import eu.arrowhead.proto.cosys.datasharing.controller.DataProducerSubThread;
 import eu.arrowhead.proto.cosys.datasharing.database.InMemoryDb;
 import eu.arrowhead.proto.cosys.datasharing.security.SubscriberSecurityConfig;
 import eu.arrowhead.proto.cosys.datasharing.utils.ConfigEventProperties;
@@ -19,6 +20,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.http.HttpMethod;
@@ -61,6 +63,9 @@ public class DataProducerListener extends ApplicationInitListener {
     @Autowired
     private ConfigEventProperties configEventProperties;
 
+    @Autowired
+    private ApplicationContext applicationContext;
+
     private final Logger logger = LogManager.getLogger(DataProducerListener.class);
 
     @Bean( DataProviderConstants.NOTIFICATION_QUEUE )
@@ -71,6 +76,11 @@ public class DataProducerListener extends ApplicationInitListener {
     @Bean( DataProviderConstants.IN_MEMORY_DB )
     public InMemoryDb getInMemoryDb() {
         return new InMemoryDb();
+    }
+
+    @Bean ( DataProviderConstants.SUB_TASK )
+    public DataProducerSubThread getProducerThread() {
+        return new DataProducerSubThread();
     }
 
     @Override
@@ -84,12 +94,7 @@ public class DataProducerListener extends ApplicationInitListener {
 
         setTokenSecurityFilter();
 
-        setNotificationFilter();
-
-        if (arrowheadService.echoCoreSystem(CoreSystem.EVENT_HANDLER)) {
-            arrowheadService.updateCoreServiceURIs(CoreSystem.EVENT_HANDLER);
-            subscribeToPresetEvents();
-        }
+        //setNotificationFilter();
 
         // register in the service reg
         final ServiceRegistryRequestDTO createProviderServiceRequest =
@@ -97,6 +102,14 @@ public class DataProducerListener extends ApplicationInitListener {
                         DataProviderConstants.PROVIDER_URI,
                         HttpMethod.POST);
         arrowheadService.forceRegisterServiceToServiceRegistry(createProviderServiceRequest);
+
+        if (arrowheadService.echoCoreSystem(CoreSystem.EVENT_HANDLER)) {
+            arrowheadService.updateCoreServiceURIs(CoreSystem.EVENT_HANDLER);
+            subscribeToPresetEvents();
+        }
+
+        final DataProducerSubThread subtask = applicationContext.getBean(DataProviderConstants.SUB_TASK, DataProducerSubThread.class);
+        subtask.start();
 
         //ServiceRegistryRequestDTO getProviderServiceRequest =
          //       createServiceRegistryRequest(DataProviderConstants.GET_PRODUCER_SERVICE_DEFINITION,
@@ -184,8 +197,9 @@ public class DataProducerListener extends ApplicationInitListener {
 
             final SystemRequestDTO subscriber = new SystemRequestDTO();
             subscriber.setSystemName( mySystemName);
-            subscriber.setAddress( mySystemAddress );
-            subscriber.setPort( mySystemPort );
+            subscriber.setAddress(mySystemAddress);
+            subscriber.setPort(mySystemPort);
+
             if (sslEnabled) {
 
                 subscriber.setAuthenticationInfo( Base64.getEncoder().encodeToString( arrowheadService.getMyPublicKey().getEncoded()) );

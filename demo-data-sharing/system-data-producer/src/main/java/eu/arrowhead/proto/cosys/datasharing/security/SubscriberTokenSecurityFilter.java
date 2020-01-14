@@ -75,7 +75,7 @@ public class SubscriberTokenSecurityFilter extends TokenSecurityFilter {
 
                     for (final String notificationUri  : eventTypeMap.values()) {
 
-                        if ( requestTarget.endsWith( DataProviderConstants.DEFAULT_EVENT_NOTIFICATION_BASE_URI + "/" + notificationUri )) {
+                        if ( requestTarget.endsWith( DataProviderConstants.PROVIDER_URI + "/" + notificationUri )) {
 
                             chain.doFilter(request, response);
                             return;

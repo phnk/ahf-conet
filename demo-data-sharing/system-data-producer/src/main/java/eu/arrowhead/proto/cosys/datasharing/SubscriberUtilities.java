@@ -16,7 +16,7 @@ public class SubscriberUtilities {
                 eventType.toUpperCase(),
                 subscriber,
                 null,
-                DataProviderConstants.DEFAULT_EVENT_NOTIFICATION_BASE_URI + "/" + notificationUri,
+                DataProviderConstants.PROVIDER_URI + "/" + notificationUri,
                 false,
                 null,
                 null,

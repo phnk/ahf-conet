@@ -36,7 +36,7 @@ public class ContractSystemController {
      */
 
     @PostMapping(path = ContractSystemConstants.OFFER_URI, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody public void offerEndpoint(@RequestParam(name = ContractSystemConstants.OFFER_AMOUNT) Inteportus.arrowhead-ci.tmit.bme.huger offerAmount,
+    @ResponseBody public void offerEndpoint(@RequestParam(name = ContractSystemConstants.OFFER_AMOUNT) Integer offerAmount,
                                             @RequestParam(name = ContractSystemConstants.RANDOM_HASH) String randomHash, HttpServletRequest request) {
 
         logger.info("Received a offer POST request");
