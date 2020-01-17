@@ -6,8 +6,7 @@ import eu.arrowhead.common.CommonConstants;
 import eu.arrowhead.common.Utilities;
 import eu.arrowhead.common.dto.shared.EventPublishRequestDTO;
 import eu.arrowhead.common.dto.shared.SystemRequestDTO;
-import eu.arrowhead.proto.cosys.ContractSystemApplicationInitListener;
-import jdk.jfr.Event;
+import eu.arrowhead.proto.cosys.ContractSystemListener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +37,7 @@ public class PublisherService {
     @Autowired
     private ArrowheadService arrowheadService;
 
-    private final Logger logger = LogManager.getLogger(ContractSystemApplicationInitListener.class);
+    private final Logger logger = LogManager.getLogger(ContractSystemListener.class);
 
     // https://github.com/arrowhead-f/sos-examples-spring/blob/master/demo-car-with-events/demo-car-provider-with-publishing/src/main/java/eu/arrowhead/client/skeleton/publisher/service/PublisherService.java
     public void publish(final PresetEventType eventType, final HashMap<String, String> metadata,final String payload) {

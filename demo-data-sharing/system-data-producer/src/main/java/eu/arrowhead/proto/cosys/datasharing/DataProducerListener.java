@@ -16,10 +16,8 @@ import eu.arrowhead.proto.cosys.datasharing.database.InMemoryDb;
 import eu.arrowhead.proto.cosys.datasharing.security.SubscriberSecurityConfig;
 import eu.arrowhead.proto.cosys.datasharing.utils.ConfigEventProperties;
 
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.Configurator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -87,24 +85,19 @@ public class DataProducerListener extends ApplicationInitListener {
 
     @Override
     protected void customInit(final ContextRefreshedEvent event) {
-        Configurator.setRootLevel(Level.DEBUG);
+        //Configurator.setRootLevel(Level.DEBUG);
+
+        checkCoreSystemReachability(CoreSystem.SERVICE_REGISTRY);
 
         if (sslEnabled && tokenSecurityFilterEnabled) {
             checkCoreSystemReachability(CoreSystem.AUTHORIZATION);
             arrowheadService.updateCoreServiceURIs(CoreSystem.AUTHORIZATION);
+            setTokenSecurityFilter();
+
+            //setNotificationFilter();
         }
 
-        checkCoreSystemReachability(CoreSystem.SERVICE_REGISTRY);
-        setTokenSecurityFilter();
-
-        //setNotificationFilter();
-
         // register in the service reg
-        final ServiceRegistryRequestDTO createProviderServiceRequest =
-                createServiceRegistryRequest(DataProducerConstants.CREATE_PRODUCER_SERVICE_DEFINITION,
-                        DataProducerConstants.PROVIDER_URI,
-                        HttpMethod.POST);
-        arrowheadService.forceRegisterServiceToServiceRegistry(createProviderServiceRequest);
 
         if (arrowheadService.echoCoreSystem(CoreSystem.EVENT_HANDLER)) {
             arrowheadService.updateCoreServiceURIs(CoreSystem.EVENT_HANDLER);
@@ -120,13 +113,11 @@ public class DataProducerListener extends ApplicationInitListener {
         applicationContext.getAutowireCapableBeanFactory().autowireBean(subtask);
         subtask.start();
 
-        // Register all the producers services
+        // TODO: Register all the producers services
+
    }
 
-    @Override
-    protected void customDestroy() {
-        arrowheadService.unregisterServiceFromServiceRegistry(DataProducerConstants.CREATE_PRODUCER_SERVICE_DEFINITION);
-    }
+
 
     private void setTokenSecurityFilter() {
         if(!tokenSecurityFilterEnabled || !sslEnabled) {
@@ -162,7 +153,6 @@ public class DataProducerListener extends ApplicationInitListener {
         systemRequest.setSystemName(mySystemName);
         systemRequest.setAddress(mySystemAddress);
         systemRequest.setPort(mySystemPort);
-
 
         serviceRegistryRequest.setSecure(ServiceSecurityType.NOT_SECURE);
         serviceRegistryRequest.setInterfaces(List.of(DataProducerConstants.INTERFACE_INSECURE));

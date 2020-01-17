@@ -81,7 +81,7 @@ public class DataProducerSubThread extends Thread {
     }
 
 
-
+    // TODO: fix hard-coded strings
     public void acceptContract(EventDTO event) {
         // save the offer
         String randomIdentifier = event.getMetaData().get("randomHash");
@@ -104,9 +104,9 @@ public class DataProducerSubThread extends Thread {
                 token,
                 "",
                 "random-hash", randomIdentifier,
-                "provider-name", mySystemName,
-                "provider-address", mySystemAddress,
-                "provider-port", Integer.toString(mySystemPort));
+                "producer-name", mySystemName,
+                "producer-address", mySystemAddress,
+                "producer-port", Integer.toString(mySystemPort));
     }
 
     public void rejectContract(EventDTO event) {
@@ -168,12 +168,12 @@ public class DataProducerSubThread extends Thread {
                 .flag(Flag.OVERRIDE_STORE, true)
                 .build();
 
-        printOut(orchestrationFormRequest);
+        //printOut(orchestrationFormRequest);
 
         final OrchestrationResponseDTO orchestrationResponse = arrowheadService.proceedOrchestration(orchestrationFormRequest);
 
-        logger.info("Orchestration response:");
-        printOut(orchestrationResponse);
+        //logger.info("Orchestration response:");
+        //printOut(orchestrationResponse);
 
         if (orchestrationResponse == null) {
             logger.info("No orchestration response received");

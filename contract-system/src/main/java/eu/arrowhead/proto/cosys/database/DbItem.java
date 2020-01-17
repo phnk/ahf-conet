@@ -12,12 +12,11 @@ public class DbItem {
     private String requestAddress;
     private String requestPort;
 
-    public DbItem(String randomHash, Integer offerAmount) {//, String requestName, String requestAddress, String requestPort) {
+    public DbItem(String randomHash, Integer offerAmount, String requestAddress, String requestPort) {
         this.randomHash = randomHash;
         this.offerAmount = offerAmount;
-        //this.requestName = requestName;
-        //this.requestAddress = requestAddress;
-        //this.requestPort = requestPort;
+        this.requestAddress = requestAddress;
+        this.requestPort = requestPort;
     }
 
     public Integer getOfferAmount() {

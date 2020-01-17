@@ -37,7 +37,7 @@ public class DataProducerController {
 
     @PostMapping(path = DataProducerConstants.REQUEST_RECEIVED_NOTIFICATION_URI)
     public void receieveEventRequestRecieved(@RequestBody final EventDTO event) {
-        logger.info("Received a offer");
+        logger.info("Received an offer");
         if (event.getEventType() != null) {
            notificationQueue.add(event);
         }
