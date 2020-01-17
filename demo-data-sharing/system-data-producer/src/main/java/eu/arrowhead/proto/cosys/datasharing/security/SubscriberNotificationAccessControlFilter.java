@@ -11,11 +11,10 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
-import eu.arrowhead.proto.cosys.datasharing.DataProviderConstants;
+import eu.arrowhead.proto.cosys.datasharing.DataProducerConstants;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
-import eu.arrowhead.proto.cosys.datasharing.DataProviderConstants;
 import eu.arrowhead.common.CommonConstants;
 import eu.arrowhead.common.Utilities;
 import eu.arrowhead.common.core.CoreSystem;
@@ -57,7 +56,7 @@ public class SubscriberNotificationAccessControlFilter extends ArrowheadFilter {
 
                     for (final String notificationUri  : eventTypeMap.values()) {
 
-                        if ( requestTarget.endsWith(DataProviderConstants.PROVIDER_URI + "/" + notificationUri )) {
+                        if ( requestTarget.endsWith(DataProducerConstants.PROVIDER_URI + "/" + notificationUri )) {
 
                             checkIfClientIsAnAllowedCoreSystem( getCertificateCNFromRequest( httpRequest ), getServerCloudCN( serverCN ), allowedCoreSystemsForSendingNotification, requestTarget);
 

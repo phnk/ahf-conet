@@ -8,7 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 
 @SpringBootApplication
-@ComponentScan(basePackages = {CommonConstants.BASE_PACKAGE, DataProviderConstants.BASE_PACKAGE})
+@ComponentScan(basePackages = {CommonConstants.BASE_PACKAGE, DataProducerConstants.BASE_PACKAGE})
 public class DataProducerMain extends ApplicationInitListener {
 
     public static void main(final String[] args) {

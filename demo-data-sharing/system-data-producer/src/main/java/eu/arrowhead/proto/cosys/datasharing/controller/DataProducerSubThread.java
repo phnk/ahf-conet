@@ -10,10 +10,9 @@ import eu.arrowhead.common.dto.shared.OrchestrationFlags.Flag;
 import eu.arrowhead.common.dto.shared.OrchestrationFormRequestDTO.Builder;
 import eu.arrowhead.common.exception.InvalidParameterException;
 import eu.arrowhead.proto.cosys.datasharing.DataProducerListener;
-import eu.arrowhead.proto.cosys.datasharing.DataProviderConstants;
+import eu.arrowhead.proto.cosys.datasharing.DataProducerConstants;
 import eu.arrowhead.proto.cosys.datasharing.database.InMemoryDb;
 import eu.arrowhead.proto.cosys.datasharing.dto.EmptyDTO;
-import org.apache.http.client.HttpClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,13 +40,13 @@ public class DataProducerSubThread extends Thread {
     @Autowired
     protected ArrowheadService arrowheadService;
 
-    @Resource(name = DataProviderConstants.NOTIFICATION_QUEUE)
+    @Resource(name = DataProducerConstants.NOTIFICATION_QUEUE)
     private ConcurrentLinkedQueue<EventDTO> notificationQueue;
 
-    @Value(DataProviderConstants.THRESHOLD)
+    @Value(DataProducerConstants.THRESHOLD)
     private Integer threshold;
 
-    @Resource(name = DataProviderConstants.IN_MEMORY_DB)
+    @Resource(name = DataProducerConstants.IN_MEMORY_DB)
     private InMemoryDb inMemoryDb;
 
     private final Logger logger = LogManager.getLogger(DataProducerListener.class);
@@ -58,7 +57,7 @@ public class DataProducerSubThread extends Thread {
             try {
                 if (notificationQueue.peek() != null) {
                     for (final EventDTO event : notificationQueue) {
-                        if (event.getEventType().equals(DataProviderConstants.REQUEST_RECEIVED)) {
+                        if (event.getEventType().equals(DataProducerConstants.REQUEST_RECEIVED)) {
                             logger.info(event.getMetaData().toString());
                             if (event.getMetaData().get("offer") == null) {
                                 notificationQueue.clear();
@@ -69,7 +68,7 @@ public class DataProducerSubThread extends Thread {
                                 logger.info("Rejected an offer");
                                 rejectContract(event);
                             }
-                        } else if (event.getEventType().equals(DataProviderConstants.REQUEST_STOP)) {
+                        } else if (event.getEventType().equals(DataProducerConstants.REQUEST_STOP)) {
                             interrupted = true;
                         }
                     }
@@ -97,7 +96,7 @@ public class DataProducerSubThread extends Thread {
 
         // send it
         arrowheadService.consumeServiceHTTP(EmptyDTO.class,
-                HttpMethod.valueOf(orchestrationResult.getMetadata().get(DataProviderConstants.HTTP_METHOD)),
+                HttpMethod.valueOf(orchestrationResult.getMetadata().get(DataProducerConstants.HTTP_METHOD)),
                 orchestrationResult.getProvider().getAddress(),
                 orchestrationResult.getProvider().getPort(),
                 orchestrationResult.getServiceUri(),
@@ -120,7 +119,7 @@ public class DataProducerSubThread extends Thread {
 
         // send it
         arrowheadService.consumeServiceHTTP(EmptyDTO.class,
-                HttpMethod.valueOf(orchestrationResult.getMetadata().get(DataProviderConstants.HTTP_METHOD)),
+                HttpMethod.valueOf(orchestrationResult.getMetadata().get(DataProducerConstants.HTTP_METHOD)),
                 orchestrationResult.getProvider().getAddress(),
                 orchestrationResult.getProvider().getPort(),
                 orchestrationResult.getServiceUri(),
@@ -132,7 +131,7 @@ public class DataProducerSubThread extends Thread {
 
 
     private String getInterface() {
-        return sslProperties.isSslEnabled() ? DataProviderConstants.INTERFACE_SECURE : DataProviderConstants.INTERFACE_INSECURE;
+        return sslProperties.isSslEnabled() ? DataProducerConstants.INTERFACE_SECURE : DataProducerConstants.INTERFACE_INSECURE;
     }
 
     private void printOut(final Object object) {

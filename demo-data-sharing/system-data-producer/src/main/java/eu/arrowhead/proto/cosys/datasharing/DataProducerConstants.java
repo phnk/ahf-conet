@@ -2,7 +2,7 @@ package eu.arrowhead.proto.cosys.datasharing;
 
 import eu.arrowhead.proto.cosys.datasharing.controller.DataProducerSubThread;
 
-public class DataProviderConstants {
+public class DataProducerConstants {
     public static final String BASE_PACKAGE = "eu.arrowhead.proto.cosys.datasharing";
     public static final String INTERFACE_SECURE = "HTTPS-SECURE-JSON";
     public static final String INTERFACE_INSECURE = "HTTP-INSECURE-JSON";

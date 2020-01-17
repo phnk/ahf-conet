@@ -16,8 +16,6 @@ import eu.arrowhead.proto.cosys.datasharing.database.InMemoryDb;
 import eu.arrowhead.proto.cosys.datasharing.security.SubscriberSecurityConfig;
 import eu.arrowhead.proto.cosys.datasharing.utils.ConfigEventProperties;
 
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -72,17 +70,17 @@ public class DataProducerListener extends ApplicationInitListener {
 
     private final Logger logger = LogManager.getLogger(DataProducerListener.class);
 
-    @Bean( DataProviderConstants.NOTIFICATION_QUEUE )
+    @Bean( DataProducerConstants.NOTIFICATION_QUEUE )
     public ConcurrentLinkedQueue<EventDTO> getNotificationQueue() {
         return new ConcurrentLinkedQueue<>();
     }
 
-    @Bean( DataProviderConstants.IN_MEMORY_DB )
+    @Bean( DataProducerConstants.IN_MEMORY_DB )
     public InMemoryDb getInMemoryDb() {
         return new InMemoryDb();
     }
 
-    @Bean ( DataProviderConstants.SUB_TASK )
+    @Bean ( DataProducerConstants.SUB_TASK )
     public DataProducerSubThread getProducerThread() {
         return new DataProducerSubThread();
     }
@@ -103,8 +101,8 @@ public class DataProducerListener extends ApplicationInitListener {
 
         // register in the service reg
         final ServiceRegistryRequestDTO createProviderServiceRequest =
-                createServiceRegistryRequest(DataProviderConstants.CREATE_PRODUCER_SERVICE_DEFINITION,
-                        DataProviderConstants.PROVIDER_URI,
+                createServiceRegistryRequest(DataProducerConstants.CREATE_PRODUCER_SERVICE_DEFINITION,
+                        DataProducerConstants.PROVIDER_URI,
                         HttpMethod.POST);
         arrowheadService.forceRegisterServiceToServiceRegistry(createProviderServiceRequest);
 
@@ -118,7 +116,7 @@ public class DataProducerListener extends ApplicationInitListener {
         arrowheadService.updateCoreServiceURIs(CoreSystem.ORCHESTRATOR);
 
         // Create the subtask
-        final DataProducerSubThread subtask = applicationContext.getBean(DataProviderConstants.SUB_TASK, DataProducerSubThread.class);
+        final DataProducerSubThread subtask = applicationContext.getBean(DataProducerConstants.SUB_TASK, DataProducerSubThread.class);
         applicationContext.getAutowireCapableBeanFactory().autowireBean(subtask);
         subtask.start();
 
@@ -127,7 +125,7 @@ public class DataProducerListener extends ApplicationInitListener {
 
     @Override
     protected void customDestroy() {
-        arrowheadService.unregisterServiceFromServiceRegistry(DataProviderConstants.CREATE_PRODUCER_SERVICE_DEFINITION);
+        arrowheadService.unregisterServiceFromServiceRegistry(DataProducerConstants.CREATE_PRODUCER_SERVICE_DEFINITION);
     }
 
     private void setTokenSecurityFilter() {
@@ -167,7 +165,7 @@ public class DataProducerListener extends ApplicationInitListener {
 
 
         serviceRegistryRequest.setSecure(ServiceSecurityType.NOT_SECURE);
-        serviceRegistryRequest.setInterfaces(List.of(DataProviderConstants.INTERFACE_INSECURE));
+        serviceRegistryRequest.setInterfaces(List.of(DataProducerConstants.INTERFACE_INSECURE));
 
         serviceRegistryRequest.setProviderSystem(systemRequest);
         serviceRegistryRequest.setServiceUri(serviceUri);

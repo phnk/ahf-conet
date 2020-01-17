@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.lang.Nullable;
 
-import eu.arrowhead.proto.cosys.datasharing.DataProviderConstants;
+import eu.arrowhead.proto.cosys.datasharing.DataProducerConstants;
 import eu.arrowhead.common.CommonConstants;
 import eu.arrowhead.common.Utilities;
 import eu.arrowhead.common.exception.ArrowheadException;
@@ -75,7 +75,7 @@ public class SubscriberTokenSecurityFilter extends TokenSecurityFilter {
 
                     for (final String notificationUri  : eventTypeMap.values()) {
 
-                        if ( requestTarget.endsWith( DataProviderConstants.PROVIDER_URI + "/" + notificationUri )) {
+                        if ( requestTarget.endsWith( DataProducerConstants.PROVIDER_URI + "/" + notificationUri )) {
 
                             chain.doFilter(request, response);
                             return;

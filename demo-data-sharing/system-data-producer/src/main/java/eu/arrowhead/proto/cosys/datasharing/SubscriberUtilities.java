@@ -1,6 +1,5 @@
 package eu.arrowhead.proto.cosys.datasharing;
 
-import eu.arrowhead.proto.cosys.datasharing.DataProviderConstants;
 import eu.arrowhead.common.dto.shared.SubscriptionRequestDTO;
 import eu.arrowhead.common.dto.shared.SystemRequestDTO;
 
@@ -16,7 +15,7 @@ public class SubscriberUtilities {
                 eventType.toUpperCase(),
                 subscriber,
                 null,
-                DataProviderConstants.PROVIDER_URI + "/" + notificationUri,
+                DataProducerConstants.PROVIDER_URI + "/" + notificationUri,
                 false,
                 null,
                 null,
