@@ -24,12 +24,12 @@ public class DataProducerController {
     @Resource(name = DataProducerConstants.IN_MEMORY_DB)
     private InMemoryDb inMemoryDb;
 
-    @PostMapping(path = "/get-value", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = DataProducerConstants.GET_DATA_URI, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody public String directRequest(@RequestParam(name = "randomIdentifier" , required = true) final String randomIdentifier) {
         if (inMemoryDb.getOfferMap().containsKey(randomIdentifier)) {
             String hashValue = inMemoryDb.getOfferMap().remove(randomIdentifier);
-            String tempValue = inMemoryDb.getValueFromKey(hashValue);
-            return tempValue;
+            String data = inMemoryDb.getValueFromKey(hashValue);
+            return data;
         }
 
         return "Identifier not found";

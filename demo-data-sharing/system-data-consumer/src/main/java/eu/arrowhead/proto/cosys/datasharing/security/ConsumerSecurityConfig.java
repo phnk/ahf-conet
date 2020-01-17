@@ -1,18 +1,16 @@
-package eu.arrowhead.proto.cosys.security;
+package eu.arrowhead.proto.cosys.datasharing.security;
 
-
+import eu.arrowhead.client.library.config.DefaultSecurityConfig;
+import eu.arrowhead.client.library.util.ClientCommonConstants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
 
-import eu.arrowhead.client.library.config.DefaultSecurityConfig;
-import eu.arrowhead.client.library.util.ClientCommonConstants;
-
 @Configuration
 @EnableWebSecurity
-public class ProviderSecurityConfig extends DefaultSecurityConfig {
+public class ConsumerSecurityConfig extends DefaultSecurityConfig {
 
     //=================================================================================================
     // members
@@ -20,7 +18,7 @@ public class ProviderSecurityConfig extends DefaultSecurityConfig {
     @Value(ClientCommonConstants.$TOKEN_SECURITY_FILTER_ENABLED_WD)
     private boolean tokenSecurityFilterEnabled;
 
-    private ProviderTokenSecurityFilter tokenSecurityFilter;
+    private ConsumerTokenSecurityFilter tokenSecurityFilter;
 
     //=================================================================================================
     // methods
@@ -30,13 +28,13 @@ public class ProviderSecurityConfig extends DefaultSecurityConfig {
     protected void configure(final HttpSecurity http) throws Exception {
         super.configure(http);
         if (tokenSecurityFilterEnabled) {
-            tokenSecurityFilter = new ProviderTokenSecurityFilter();
+            tokenSecurityFilter = new ConsumerTokenSecurityFilter();
             http.addFilterAfter(tokenSecurityFilter, SecurityContextHolderAwareRequestFilter.class);
         }
     }
 
     //-------------------------------------------------------------------------------------------------
-    public ProviderTokenSecurityFilter getTokenSecurityFilter() {
+    public ConsumerTokenSecurityFilter getTokenSecurityFilter() {
         return tokenSecurityFilter;
     }
 }

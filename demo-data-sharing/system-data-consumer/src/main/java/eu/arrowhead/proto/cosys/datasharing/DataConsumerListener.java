@@ -11,7 +11,7 @@ import eu.arrowhead.common.dto.shared.ServiceSecurityType;
 import eu.arrowhead.common.dto.shared.SystemRequestDTO;
 import eu.arrowhead.common.exception.ArrowheadException;
 import eu.arrowhead.proto.cosys.datasharing.controller.DataConsumerController;
-import eu.arrowhead.proto.cosys.security.ProviderSecurityConfig;
+import eu.arrowhead.proto.cosys.datasharing.security.ConsumerSecurityConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,7 @@ public class DataConsumerListener extends ApplicationInitListener {
     protected ArrowheadService arrowheadService;
 
     @Autowired
-    private ProviderSecurityConfig providerSecurityConfig;
+    private ConsumerSecurityConfig consumerSecurityConfig;
 
     @Value(ClientCommonConstants.$CLIENT_SYSTEM_NAME)
     private String mySystemName;
@@ -92,9 +92,9 @@ public class DataConsumerListener extends ApplicationInitListener {
             e.printStackTrace();
         }
 
-        final PrivateKey providerPrivateKey = Utilities.getPrivateKey(keystore, sslProperties.getKeyPassword());
-        providerSecurityConfig.getTokenSecurityFilter().setAuthorizationPublicKey(authorizationPublicKey);
-        providerSecurityConfig.getTokenSecurityFilter().setMyPrivateKey(providerPrivateKey);
+        final PrivateKey consumerPrivateKey = Utilities.getPrivateKey(keystore, sslProperties.getKeyPassword());
+        consumerSecurityConfig.getTokenSecurityFilter().setAuthorizationPublicKey(authorizationPublicKey);
+        consumerSecurityConfig.getTokenSecurityFilter().setMyPrivateKey(consumerPrivateKey);
     }
 
     private ServiceRegistryRequestDTO createServiceRegistryRequest(final String serviceDefinition, final String serviceUri, final HttpMethod httpMethod) {

@@ -15,5 +15,7 @@ public class DataProducerConstants {
     public static final String REQUEST_STOP = "REQUEST_STOP";
     public static final String SUB_TASK = "sub_task";
 
+    public static final String GET_DATA_NAME = "get-data";
+    public static final String GET_DATA_URI = "/get-data";
 }
 

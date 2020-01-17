@@ -25,12 +25,7 @@
             <version>5.5.2</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>eu.arrowhead.proto.cosys</groupId>
-            <artifactId>ContractSystem</artifactId>
-            <version>0.1.0</version>
-            <scope>compile</scope>
-        </dependency>
+
     </dependencies>
 
     <build>

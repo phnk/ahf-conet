@@ -11,9 +11,7 @@ import eu.arrowhead.common.dto.shared.ServiceSecurityType;
 import eu.arrowhead.common.dto.shared.SystemRequestDTO;
 import eu.arrowhead.common.exception.ArrowheadException;
 import eu.arrowhead.proto.cosys.database.DbItem;
-import eu.arrowhead.proto.cosys.security.ProviderSecurityConfig;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.core.config.Configurator;
+import eu.arrowhead.proto.cosys.security.ContractSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -36,7 +34,7 @@ public class ContractSystemListener extends ApplicationInitListener {
     private ArrowheadService arrowheadService;
 
     @Autowired
-    private ProviderSecurityConfig providerSecurityConfig;
+    private ContractSecurityConfig contractSecurityConfig;
 
     @Value(ClientCommonConstants.$TOKEN_SECURITY_FILTER_ENABLED_WD)
     private boolean tokenSecurityFilterEnabled;
@@ -106,8 +104,8 @@ public class ContractSystemListener extends ApplicationInitListener {
         }
 
         final PrivateKey providerPrivateKey = Utilities.getPrivateKey(keystore, sslProperties.getKeyPassword());
-        providerSecurityConfig.getTokenSecurityFilter().setAuthorizationPublicKey(authorizationPublicKey);
-        providerSecurityConfig.getTokenSecurityFilter().setMyPrivateKey(providerPrivateKey);
+        contractSecurityConfig.getTokenSecurityFilter().setAuthorizationPublicKey(authorizationPublicKey);
+        contractSecurityConfig.getTokenSecurityFilter().setMyPrivateKey(providerPrivateKey);
     }
 
      private ServiceRegistryRequestDTO createServiceRegistryRequest(final String serviceDefinition, final String serviceUri, final HttpMethod httpMethod) {

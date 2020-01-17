@@ -1,12 +1,11 @@
-package eu.arrowhead.proto.cosys.security;
+package eu.arrowhead.proto.cosys.datasharing.security;
+
+import eu.arrowhead.common.token.TokenSecurityFilter;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
-import eu.arrowhead.common.token.TokenSecurityFilter;
-
-public class ProviderTokenSecurityFilter extends TokenSecurityFilter {
-
+public class ConsumerTokenSecurityFilter extends TokenSecurityFilter {
     //=================================================================================================
     // members
 
@@ -38,4 +37,3 @@ public class ProviderTokenSecurityFilter extends TokenSecurityFilter {
         this.authorizationPublicKey = authorizationPublicKey;
     }
 }
-

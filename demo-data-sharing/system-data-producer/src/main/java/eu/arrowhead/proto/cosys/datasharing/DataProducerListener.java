@@ -26,7 +26,6 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 
-
 import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -94,10 +93,8 @@ public class DataProducerListener extends ApplicationInitListener {
             arrowheadService.updateCoreServiceURIs(CoreSystem.AUTHORIZATION);
             setTokenSecurityFilter();
 
-            //setNotificationFilter();
+            setNotificationFilter();
         }
-
-        // register in the service reg
 
         if (arrowheadService.echoCoreSystem(CoreSystem.EVENT_HANDLER)) {
             arrowheadService.updateCoreServiceURIs(CoreSystem.EVENT_HANDLER);
@@ -113,11 +110,11 @@ public class DataProducerListener extends ApplicationInitListener {
         applicationContext.getAutowireCapableBeanFactory().autowireBean(subtask);
         subtask.start();
 
-        // TODO: Register all the producers services
+        // register direct connection by consumer to get the data
+        final ServiceRegistryRequestDTO getDataRequest = createServiceRegistryRequest(DataProducerConstants.GET_DATA_NAME, DataProducerConstants.GET_DATA_URI, HttpMethod.POST);
+        arrowheadService.forceRegisterServiceToServiceRegistry(getDataRequest);
 
    }
-
-
 
     private void setTokenSecurityFilter() {
         if(!tokenSecurityFilterEnabled || !sslEnabled) {
