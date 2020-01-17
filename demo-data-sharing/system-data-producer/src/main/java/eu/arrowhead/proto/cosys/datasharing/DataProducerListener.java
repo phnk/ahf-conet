@@ -16,8 +16,12 @@ import eu.arrowhead.proto.cosys.datasharing.database.InMemoryDb;
 import eu.arrowhead.proto.cosys.datasharing.security.SubscriberSecurityConfig;
 import eu.arrowhead.proto.cosys.datasharing.utils.ConfigEventProperties;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -85,13 +89,14 @@ public class DataProducerListener extends ApplicationInitListener {
 
     @Override
     protected void customInit(final ContextRefreshedEvent event) {
-        checkCoreSystemReachability(CoreSystem.SERVICE_REGISTRY);
+        Configurator.setRootLevel(Level.DEBUG);
 
         if (sslEnabled && tokenSecurityFilterEnabled) {
             checkCoreSystemReachability(CoreSystem.AUTHORIZATION);
             arrowheadService.updateCoreServiceURIs(CoreSystem.AUTHORIZATION);
         }
 
+        checkCoreSystemReachability(CoreSystem.SERVICE_REGISTRY);
         setTokenSecurityFilter();
 
         //setNotificationFilter();
@@ -108,20 +113,17 @@ public class DataProducerListener extends ApplicationInitListener {
             subscribeToPresetEvents();
         }
 
+        // Orchestrator setup
+        checkCoreSystemReachability(CoreSystem.ORCHESTRATOR);
+        arrowheadService.updateCoreServiceURIs(CoreSystem.ORCHESTRATOR);
+
+        // Create the subtask
         final DataProducerSubThread subtask = applicationContext.getBean(DataProviderConstants.SUB_TASK, DataProducerSubThread.class);
+        applicationContext.getAutowireCapableBeanFactory().autowireBean(subtask);
         subtask.start();
 
-        //ServiceRegistryRequestDTO getProviderServiceRequest =
-         //       createServiceRegistryRequest(DataProviderConstants.GET_PRODUCER_SERVICE_DEFINITION,
-         //               DataProviderConstants.PROVIDER_URI,
-         //               HttpMethod.GET);
-
-        // meta data for our specific context
-        //getProviderServiceRequest.getMetadata().put(DataProviderConstants.REQUEST_PARAM_KEY_BRAND,
-        //        DataProviderConstants.REQUEST_PARAM_KEY_BRAND);
-        //getProviderServiceRequest.getMetadata().put(DataProviderConstants.REQUEST_PARAM_KEY_COLOR,
-        //        DataProviderConstants.REQUEST_PARAM_KEY_COLOR);
-    }
+        // Register all the producers services
+   }
 
     @Override
     protected void customDestroy() {

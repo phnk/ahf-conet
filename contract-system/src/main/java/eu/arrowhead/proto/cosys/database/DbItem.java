@@ -6,14 +6,18 @@ import java.util.HashMap;
 
 public class DbItem {
 
+    private String requestName;
     private String randomHash;
     private Integer offerAmount;
-    private HttpServletRequest request; // should be some type of object
+    private String requestAddress;
+    private String requestPort;
 
-    public DbItem(String randomHash, Integer offerAmount, HttpServletRequest request) {
+    public DbItem(String randomHash, Integer offerAmount) {//, String requestName, String requestAddress, String requestPort) {
         this.randomHash = randomHash;
         this.offerAmount = offerAmount;
-        this.request = request;
+        //this.requestName = requestName;
+        //this.requestAddress = requestAddress;
+        //this.requestPort = requestPort;
     }
 
     public Integer getOfferAmount() {
@@ -32,11 +36,28 @@ public class DbItem {
         this.randomHash = randomHash;
     }
 
-    public HttpServletRequest getRequest() {
-        return request;
+
+    public String getRequestName() {
+        return requestName;
     }
 
-    public void setRequest(HttpServletRequest request) {
-        this.request = request;
+    public void setRequestName(String requestName) {
+        this.requestName = requestName;
+    }
+
+    public String getRequestAddress() {
+        return requestAddress;
+    }
+
+    public void setRequestAddress(String requestAddress) {
+        this.requestAddress = requestAddress;
+    }
+
+    public String getRequestPort() {
+        return requestPort;
+    }
+
+    public void setRequestPort(String requestPort) {
+        this.requestPort = requestPort;
     }
 }

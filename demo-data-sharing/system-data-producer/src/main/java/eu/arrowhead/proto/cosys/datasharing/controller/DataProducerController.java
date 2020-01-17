@@ -24,7 +24,7 @@ public class DataProducerController {
     @Resource(name = DataProviderConstants.IN_MEMORY_DB)
     private InMemoryDb inMemoryDb;
 
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/get-value", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody public String directRequest(@RequestParam(name = "randomIdentifier" , required = true) final String randomIdentifier) {
         if (inMemoryDb.getOfferMap().containsKey(randomIdentifier)) {
             String hashValue = inMemoryDb.getOfferMap().remove(randomIdentifier);

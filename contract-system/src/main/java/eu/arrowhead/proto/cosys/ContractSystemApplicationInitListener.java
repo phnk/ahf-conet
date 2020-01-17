@@ -12,13 +12,17 @@ import eu.arrowhead.common.dto.shared.SystemRequestDTO;
 import eu.arrowhead.common.exception.ArrowheadException;
 import eu.arrowhead.proto.cosys.database.DbItem;
 import eu.arrowhead.proto.cosys.security.ProviderSecurityConfig;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.security.*;
@@ -59,6 +63,8 @@ public class ContractSystemApplicationInitListener extends ApplicationInitListen
 
     @Override
     protected void customInit(final ContextRefreshedEvent event) {
+        Configurator.setRootLevel(Level.DEBUG);
+
         checkCoreSystemReachability(CoreSystem.SERVICE_REGISTRY);
 
         if (sslEnabled && tokenSecurityFilterEnabled) {
@@ -69,9 +75,18 @@ public class ContractSystemApplicationInitListener extends ApplicationInitListen
             setTokenSecurityFilter();
         }
 
-        // register all the different services
-        final ServiceRegistryRequestDTO createServiceRequest = createServiceRegistryRequest(ContractSystemConstants.CREATE_CONTRACT_SERVICE_DEFINITION, ContractSystemConstants.CONTRACT_URI, HttpMethod.GET);
-        arrowheadService.forceRegisterServiceToServiceRegistry(createServiceRequest);
+        // Register all the services
+        // Offer
+        final ServiceRegistryRequestDTO offerServiceRequest = createServiceRegistryRequest(ContractSystemConstants.OFFER_NAME, ContractSystemConstants.OFFER_URI, HttpMethod.POST);
+        arrowheadService.forceRegisterServiceToServiceRegistry(offerServiceRequest);
+
+        // Reject
+        final ServiceRegistryRequestDTO rejectServiceRequest = createServiceRegistryRequest(ContractSystemConstants.REJECT_NAME, ContractSystemConstants.REJECT_URI, HttpMethod.POST);
+        arrowheadService.forceRegisterServiceToServiceRegistry(rejectServiceRequest);
+
+        // Accept
+        final ServiceRegistryRequestDTO acceptServiceRequest = createServiceRegistryRequest(ContractSystemConstants.ACCEPT_NAME, ContractSystemConstants.ACCEPT_URI, HttpMethod.POST);
+        arrowheadService.forceRegisterServiceToServiceRegistry(acceptServiceRequest);
 
         if (arrowheadService.echoCoreSystem(CoreSystem.EVENT_HANDLER)) {
             arrowheadService.updateCoreServiceURIs(CoreSystem.EVENT_HANDLER);

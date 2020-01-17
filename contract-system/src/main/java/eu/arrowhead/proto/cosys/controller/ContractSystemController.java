@@ -11,12 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 @RestController
-@RequestMapping(ContractSystemConstants.CONTRACT_URI)
 public class ContractSystemController {
 
     private final Logger logger = LogManager.getLogger(ContractSystemApplicationInitListener.class);
@@ -26,22 +24,20 @@ public class ContractSystemController {
 
     @Autowired
     private ArrayList<DbItem> db;
-   /*
-        TODO: Implement the following endpoints to allow the contract system to get messages
-            * Offer endpoint
-                - Arguments: Random hash, offer amount
-            * Reject endpoint
-            * Accept endpoint
-            * Testing endpoint (To send requests through the eventhandler and see if they are received by the DataProducer)
-     */
 
+    // TODO: add information about the requesting system to be able to relay the answer
     @PostMapping(path = ContractSystemConstants.OFFER_URI, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody public void offerEndpoint(@RequestParam(name = ContractSystemConstants.OFFER_AMOUNT) Integer offerAmount,
-                                            @RequestParam(name = ContractSystemConstants.RANDOM_HASH) String randomHash, HttpServletRequest request) {
+                                            @RequestParam(name = ContractSystemConstants.RANDOM_HASH) String randomHash,
+                                            @RequestParam(name = ContractSystemConstants.IDENTIFYING_HASH) String hash
+                                            //@RequestParam(name = ContractSystemConstants.REQUEST_NAME) String requestName,
+                                            //@RequestParam(name = ContractSystemConstants.REQUEST_ADDRESS) String requestAddress,
+                                            //@RequestParam(name = ContractSystemConstants.REQUEST_PORT) String requestPort)
+    ){
 
         logger.info("Received a offer POST request");
         // save it in a db (and who made the offer)
-        db.add(new DbItem(randomHash, offerAmount, request));
+        db.add(new DbItem(randomHash, offerAmount)); //, requestName, requestAddress, requestPort));
         // publish the offer through the eventhandler
 
         // arguments: eventType, metadata, payload
@@ -49,36 +45,35 @@ public class ContractSystemController {
 
         tempMap.put("randomHash", randomHash);
         tempMap.put("offer", Integer.toString(offerAmount));
+        tempMap.put("hash", hash);
 
         // payload hardcoded should probably be something
         publisherService.publish(PresetEventType.REQUEST_RECEIVED, tempMap, "1");
-        // return some ok or not
     }
 
     @PostMapping(path = ContractSystemConstants.REJECT_URI, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody public String rejectEndpoint(@RequestParam(name = ContractSystemConstants.RANDOM_HASH) String randomHash) {
+    @ResponseBody public void rejectEndpoint(@RequestParam(name = ContractSystemConstants.RANDOM_HASH) String randomHash) {
         logger.info("Received a reject POST request");
         // find the request
         DbItem tempItem = getItem(randomHash);
+
         if (tempItem != null) {
-            return "Hash could be found";
-        } else {
-            return "Hash could not be found";
+            // relay this to the requesting system
         }
     }
 
     @PostMapping(path = ContractSystemConstants.ACCEPT_URI, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody public void acceptEndpoint(@RequestParam(name = ContractSystemConstants.RANDOM_HASH) String randomHash, @RequestParam(name = ContractSystemConstants.DATA) String data) {
+    @ResponseBody public void acceptEndpoint(@RequestParam(name = ContractSystemConstants.RANDOM_HASH) String randomHash,
+                                             @RequestParam(name = ContractSystemConstants.PROVIDER_NAME) String providerName,
+                                             @RequestParam(name = ContractSystemConstants.PROVIDER_ADDRESS) String providerAddress,
+                                             @RequestParam(name = ContractSystemConstants.PROVIDER_PORT) String providerPort) {
         // find the request
         logger.info("Received a accept POST request");
         DbItem tempItem = getItem(randomHash);
 
         if (tempItem != null) {
-            // somehow relay it to the requester
-        } else {
-            // hash could not be found
+            // relay this to the requesting system
         }
-
     }
 
     @GetMapping(path = "/echo")
@@ -95,4 +90,13 @@ public class ContractSystemController {
         return null;
     }
 
+    // TODO: change to go through the gatekeeper/gateway
+    public void relayRejectRequest(DbItem dbItem) {
+
+    }
+
+    // TODO: change to go through the gatekeeper/gateway
+    public void relayAcceptRequest(DbItem dbItem, String providerAddress, String providerName, String providerPort) {
+
+    }
 }
