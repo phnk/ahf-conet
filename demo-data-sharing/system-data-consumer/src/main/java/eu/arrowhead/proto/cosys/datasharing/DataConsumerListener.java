@@ -11,11 +11,15 @@ import eu.arrowhead.common.dto.shared.ServiceSecurityType;
 import eu.arrowhead.common.dto.shared.SystemRequestDTO;
 import eu.arrowhead.common.exception.ArrowheadException;
 import eu.arrowhead.proto.cosys.datasharing.controller.DataConsumerController;
+import eu.arrowhead.proto.cosys.datasharing.database.AcceptedItem;
 import eu.arrowhead.proto.cosys.datasharing.security.ConsumerSecurityConfig;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
@@ -23,6 +27,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -51,10 +56,17 @@ public class DataConsumerListener extends ApplicationInitListener {
     @Value(CommonConstants.$SERVER_SSL_ENABLED_WD)
     private boolean sslEnabled;
 
+    @Bean(DataConsumerConstants.ACCEPTED_ITEM_LIST)
+    public ArrayList<AcceptedItem> getAcceptedItems() {
+        return new ArrayList<>();
+    }
+
     private final Logger logger = LogManager.getLogger(DataConsumerController.class);
 
     @Override
     protected void customInit(final ContextRefreshedEvent event) {
+        //Configurator.setRootLevel(Level.DEBUG);
+
         checkCoreSystemReachability(CoreSystem.SERVICE_REGISTRY);
 
         if (sslEnabled && tokenSecurityFilterEnabled) {

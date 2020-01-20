@@ -11,7 +11,6 @@ public class InMemoryDb {
     private HashMap<String, String> offerMap;
 
     public InMemoryDb() {
-        threshold = 1000;
         inMemoryMap = new HashMap<>();
         offerMap = new HashMap<>();
 
@@ -46,9 +45,6 @@ public class InMemoryDb {
         return s;
     }
 
-    public synchronized int getTreshold() {
-        return threshold;
-    }
 
     public synchronized void setThreshold(int newThreshold) {
         threshold = newThreshold;

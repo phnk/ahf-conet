@@ -76,14 +76,15 @@ public class ContractSystemController {
     @ResponseBody public void acceptEndpoint(@RequestParam(name = ContractSystemConstants.RANDOM_HASH) String randomHash,
                                              @RequestParam(name = ContractSystemConstants.PRODUCER_NAME) String producerName,
                                              @RequestParam(name = ContractSystemConstants.PRODUCER_ADDRESS) String producerAddress,
-                                             @RequestParam(name = ContractSystemConstants.PRODUCER_PORT) String producerPort) {
+                                             @RequestParam(name = ContractSystemConstants.PRODUCER_PORT) String producerPort,
+                                             @RequestParam(name = ContractSystemConstants.SERVICE_URI) String serviceUri) {
         // find the request
         logger.info("Received a accept POST request");
         DbItem tempItem = getItem(randomHash);
 
         if (tempItem != null) {
             // relay this to the requesting system
-            relayAcceptRequest(tempItem, producerName, producerAddress, producerPort);
+            relayAcceptRequest(tempItem, producerName, producerAddress, producerPort, serviceUri);
         }
     }
 
@@ -116,7 +117,7 @@ public class ContractSystemController {
     }
 
     // TODO: change to go through the gatekeeper/gateway
-    public void relayAcceptRequest(DbItem dbItem, String producerName, String producerAddress, String producerPort) {
+    public void relayAcceptRequest(DbItem dbItem, String producerName, String producerAddress, String producerPort, String serviceUri) {
         arrowheadService.consumeServiceHTTP(EmptyDTO.class,
                 HttpMethod.POST,
                 dbItem.getRequestAddress(),
@@ -128,7 +129,8 @@ public class ContractSystemController {
                 "ident-hash", dbItem.getRandomHash(),
                 "producer-name", producerName,
                 "producer-address", producerAddress,
-                "producer-port", producerPort
+                "producer-port", producerPort,
+                "service-uri", serviceUri
         );
     }
 

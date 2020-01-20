@@ -16,4 +16,6 @@ public class DataConsumerConstants {
 
     public static final String ACCEPT_NAME = "accept-relay";
     public static final String ACCEPT_URI = "/acceptRelay";
+    public static final String ACCEPTED_ITEM_LIST = "accepted-items-list";
+    public static final String SERVICE_URI = "service-uri";
 }

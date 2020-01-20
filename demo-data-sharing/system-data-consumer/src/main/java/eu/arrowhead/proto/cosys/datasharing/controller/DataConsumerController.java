@@ -7,9 +7,11 @@ import eu.arrowhead.common.Utilities;
 import eu.arrowhead.common.dto.shared.*;
 import eu.arrowhead.common.exception.InvalidParameterException;
 import eu.arrowhead.proto.cosys.datasharing.DataConsumerConstants;
+import eu.arrowhead.proto.cosys.datasharing.database.AcceptedItem;
 import eu.arrowhead.proto.cosys.datasharing.dto.EmptyDTO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jose4j.json.internal.json_simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 @RestController
@@ -34,6 +37,9 @@ public class DataConsumerController {
     private Integer mySystemPort;
 
     @Autowired
+    private ArrayList<AcceptedItem> db;
+
+    @Autowired
     protected ArrowheadService arrowheadService;
 
     private final Logger logger = LogManager.getLogger(DataConsumerController.class);
@@ -47,8 +53,10 @@ public class DataConsumerController {
     @ResponseBody public void acceptEndpoint(@RequestParam(name = DataConsumerConstants.IDENTIFYING_HASH) String hash,
                                                 @RequestParam(name = DataConsumerConstants.PRODUCER_NAME) String producerName,
                                                 @RequestParam(name = DataConsumerConstants.PRODUCER_ADDRESS) String producerAddress,
-                                                @RequestParam(name = DataConsumerConstants.PRODUCER_PORT) String producerPort) {
+                                                @RequestParam(name = DataConsumerConstants.PRODUCER_PORT) String producerPort,
+                                                @RequestParam(name = DataConsumerConstants.SERVICE_URI) String serviceUri) {
         logger.info("The offer with identifying hash: " + hash + " was accepted by: " + producerName + " with address: " + producerAddress + ":" + producerPort);
+        db.add(new AcceptedItem(hash, producerName, producerAddress, producerPort, serviceUri));
     }
 
     // EVERYTHING BELOW IS FOR DEMO PURPOSES ONLY
@@ -56,6 +64,7 @@ public class DataConsumerController {
     @PostMapping(path = "/request-data", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody public void requestData(@RequestParam(name = "data-hash") String dataHash,
                                           @RequestParam(name = "offer-amount") Integer offerAmount) {
+
         String randomIdentifier = getRandomIdentifier();
 
         OrchestrationResultDTO orchestrationResult = getService("offer-contract");
@@ -80,9 +89,36 @@ public class DataConsumerController {
     }
 
     // TODO: add proper way to connect to the producer which has the data and accepted us
-    @PostMapping(path = "/get-data", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody public void getData(@RequestParam(name = "data-hash") String dataHash) {
+    @PostMapping(path = "/get-data", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody public String getData(@RequestParam(name = "identifying-hash") String identifyingHash) {
+        for (int i = 0; i < db.size(); i++) {
+            if (db.get(i).getIdentifyingHash().equals(identifyingHash)) {
+                logger.info("Trying to send a request to: " + db.get(i).getProducerAddress() + ":" + db.get(i).getProducerPort());
 
+                OrchestrationResultDTO orchestrationResult = getService(db.get(i).getServiceUri());
+
+                final String token = orchestrationResult.getAuthorizationTokens() == null ? null : orchestrationResult.getAuthorizationTokens().get(getInterface());
+
+                JSONObject a = arrowheadService.consumeServiceHTTP(JSONObject.class,
+                        HttpMethod.POST,
+                        db.get(i).getProducerAddress(),
+                        Integer.parseInt(db.get(i).getProducerPort()),
+                        "/get-data",
+                        getInterface(),
+                        token,
+                        "",
+                        "identifying-hash", identifyingHash);
+
+                if (a.containsKey("data") && a.containsKey("status")) {
+                    if (a.get("status").equals("ERROR")) {
+                        return "The hash: " + identifyingHash + " was not accepted";
+                    } else {
+                        return a.get("data").toString();
+                    }
+                }
+            }
+        }
+        return "The hash: " + identifyingHash + " is not used";
     }
 
     // HELPERS
@@ -128,7 +164,6 @@ public class DataConsumerController {
                 .build();
 
         final OrchestrationResponseDTO orchestrationResponse = arrowheadService.proceedOrchestration(orchestrationFormRequest);
-
 
         if (orchestrationResponse == null) {
             logger.info("No orchestration response received");

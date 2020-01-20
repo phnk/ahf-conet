@@ -6,7 +6,7 @@ public class DataProducerConstants {
     public static final String INTERFACE_INSECURE = "HTTP-INSECURE-JSON";
     public static final String HTTP_METHOD = "http-method";
     public static final String CREATE_PRODUCER_SERVICE_DEFINITION = "create-producer";
-    public static final String PROVIDER_URI = "/provider";
+    public static final String PROVIDER_URI = "/";
     public static final String NOTIFICATION_QUEUE = "sub-queue";
     public static final String REQUEST_RECEIVED_NOTIFICATION_URI = "/notify";
     public static final String REQUEST_RECEIVED = "REQUEST_RECEIVED";

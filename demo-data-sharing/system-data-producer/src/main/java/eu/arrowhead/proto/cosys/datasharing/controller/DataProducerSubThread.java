@@ -62,7 +62,8 @@ public class DataProducerSubThread extends Thread {
                             if (event.getMetaData().get("offer") == null) {
                                 notificationQueue.clear();
                                 rejectContract(event);
-                            } else if (Integer.parseInt(event.getMetaData().get("offer")) >= this.threshold) {
+                            } else if (Integer.parseInt(event.getMetaData().get("offer")) >= this.threshold
+                                    && inMemoryDb.getInMemoryMap().containsKey(event.getMetaData().get("hash"))) {
                                 acceptContract(event);
                             } else {
                                 logger.info("Rejected an offer");
@@ -79,7 +80,6 @@ public class DataProducerSubThread extends Thread {
             }
         }
     }
-
 
     // TODO: fix hard-coded strings
     public void acceptContract(EventDTO event) {
@@ -106,7 +106,8 @@ public class DataProducerSubThread extends Thread {
                 "random-hash", randomIdentifier,
                 "producer-name", mySystemName,
                 "producer-address", mySystemAddress,
-                "producer-port", Integer.toString(mySystemPort));
+                "producer-port", Integer.toString(mySystemPort),
+                "service-uri", "get-data");
     }
 
     public void rejectContract(EventDTO event) {
@@ -168,12 +169,7 @@ public class DataProducerSubThread extends Thread {
                 .flag(Flag.OVERRIDE_STORE, true)
                 .build();
 
-        //printOut(orchestrationFormRequest);
-
         final OrchestrationResponseDTO orchestrationResponse = arrowheadService.proceedOrchestration(orchestrationFormRequest);
-
-        //logger.info("Orchestration response:");
-        //printOut(orchestrationResponse);
 
         if (orchestrationResponse == null) {
             logger.info("No orchestration response received");

@@ -5,6 +5,7 @@ import eu.arrowhead.proto.cosys.datasharing.DataProducerConstants;
 import eu.arrowhead.proto.cosys.datasharing.database.InMemoryDb;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jose4j.json.internal.json_simple.JSONObject;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,14 +26,22 @@ public class DataProducerController {
     private InMemoryDb inMemoryDb;
 
     @PostMapping(path = DataProducerConstants.GET_DATA_URI, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody public String directRequest(@RequestParam(name = "randomIdentifier" , required = true) final String randomIdentifier) {
+    @ResponseBody public String directRequest(@RequestParam(name = "identifying-hash" , required = true) String randomIdentifier) {
+        logger.info("Got a direct request for data");
+        JSONObject returnObject = new JSONObject();
+
         if (inMemoryDb.getOfferMap().containsKey(randomIdentifier)) {
             String hashValue = inMemoryDb.getOfferMap().remove(randomIdentifier);
             String data = inMemoryDb.getValueFromKey(hashValue);
-            return data;
+            returnObject.put("data", data);
+            returnObject.put("status", "OK");
+        } else {
+            returnObject.put("data", "Identifier not found");
+            returnObject.put("status", "ERROR");
         }
 
-        return "Identifier not found";
+        return returnObject.toString();
+
     }
 
     @PostMapping(path = DataProducerConstants.REQUEST_RECEIVED_NOTIFICATION_URI)

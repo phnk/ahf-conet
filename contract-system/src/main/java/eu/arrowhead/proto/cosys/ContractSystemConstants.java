@@ -25,4 +25,5 @@ public class ContractSystemConstants {
     public static final String REJECT_NAME = "reject-contract";
     public static final String ACCEPT_NAME = "accept-contract";
     public static final String DATA_HASH = "data-hash";
+    public static final String SERVICE_URI = "service-uri";
 }
