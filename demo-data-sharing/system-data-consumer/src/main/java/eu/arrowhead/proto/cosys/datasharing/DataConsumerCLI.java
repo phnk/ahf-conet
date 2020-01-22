@@ -70,7 +70,6 @@ public class DataConsumerCLI extends Thread {
         validateOrchestrationResult(orchestrationResult, "offer-contract");
 
         final String token = orchestrationResult.getAuthorizationTokens() == null ? null : orchestrationResult.getAuthorizationTokens().get(getInterface());
-        logger.info("Token is: " + token);
 
         arrowheadService.consumeServiceHTTP(EmptyDTO.class,
                 HttpMethod.valueOf(orchestrationResult.getMetadata().get(DataConsumerConstants.HTTP_METHOD)),
@@ -111,7 +110,7 @@ public class DataConsumerCLI extends Thread {
                     if (a.get("status").equals("ERROR")) {
                         return "The hash: " + identifyingHash + " was not accepted";
                     } else {
-                        return a.get("data").toString();
+                        return "The data requested: " + a.get("data").toString();
                     }
                 }
             }
