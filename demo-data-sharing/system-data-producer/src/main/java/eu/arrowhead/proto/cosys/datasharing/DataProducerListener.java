@@ -16,8 +16,10 @@ import eu.arrowhead.proto.cosys.datasharing.database.InMemoryDb;
 import eu.arrowhead.proto.cosys.datasharing.security.SubscriberSecurityConfig;
 import eu.arrowhead.proto.cosys.datasharing.utils.ConfigEventProperties;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -30,6 +32,7 @@ import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -136,7 +139,7 @@ public class DataProducerListener extends ApplicationInitListener {
 
             final Map<String, String> eventTypeMap = configEventProperties.getEventTypeURIMap();
 
-            subscriberSecurityConfig.getTokenSecurityFilter().setEventTypeMap( eventTypeMap );
+            subscriberSecurityConfig.getTokenSecurityFilter().setEventTypeMap(eventTypeMap);
             subscriberSecurityConfig.getTokenSecurityFilter().setAuthorizationPublicKey(authorizationPublicKey);
             subscriberSecurityConfig.getTokenSecurityFilter().setMyPrivateKey(subscriberPrivateKey);
         }
@@ -151,13 +154,23 @@ public class DataProducerListener extends ApplicationInitListener {
         systemRequest.setAddress(mySystemAddress);
         systemRequest.setPort(mySystemPort);
 
-        serviceRegistryRequest.setSecure(ServiceSecurityType.NOT_SECURE);
-        serviceRegistryRequest.setInterfaces(List.of(DataProducerConstants.INTERFACE_INSECURE));
+        if (tokenSecurityFilterEnabled) {
+            systemRequest.setAuthenticationInfo(Base64.getEncoder().encodeToString(arrowheadService.getMyPublicKey().getEncoded()));
+            serviceRegistryRequest.setSecure(ServiceSecurityType.TOKEN);
+            serviceRegistryRequest.setInterfaces(List.of(DataProducerConstants.INTERFACE_SECURE));
+        } else if (sslEnabled) {
+            systemRequest.setAuthenticationInfo(Base64.getEncoder().encodeToString(arrowheadService.getMyPublicKey().getEncoded()));
+            serviceRegistryRequest.setSecure(ServiceSecurityType.CERTIFICATE);
+            serviceRegistryRequest.setInterfaces(List.of(DataProducerConstants.INTERFACE_SECURE));
+        } else {
+            serviceRegistryRequest.setSecure(ServiceSecurityType.NOT_SECURE);
+            serviceRegistryRequest.setInterfaces(List.of(DataProducerConstants.INTERFACE_INSECURE));
+        }
 
         serviceRegistryRequest.setProviderSystem(systemRequest);
         serviceRegistryRequest.setServiceUri(serviceUri);
-        //serviceRegistryRequest.setMetadata(new HashMap<>());
-        //serviceRegistryRequest.getMetadata().put(DataProviderConstants.HTTP_METHOD, httpMethod.name());
+        serviceRegistryRequest.setMetadata(new HashMap<>());
+        serviceRegistryRequest.getMetadata().put(DataProducerConstants.HTTP_METHOD, httpMethod.name());
         return serviceRegistryRequest;
 
    }
@@ -167,8 +180,8 @@ public class DataProducerListener extends ApplicationInitListener {
 
         final Map<String, String> eventTypeMap = configEventProperties.getEventTypeURIMap();
 
-        subscriberSecurityConfig.getNotificationFilter().setEventTypeMap( eventTypeMap );
-        subscriberSecurityConfig.getNotificationFilter().setServerCN( arrowheadService.getServerCN() );
+        subscriberSecurityConfig.getNotificationFilter().setEventTypeMap(eventTypeMap);
+        subscriberSecurityConfig.getNotificationFilter().setServerCN(arrowheadService.getServerCN());
 
     }
 

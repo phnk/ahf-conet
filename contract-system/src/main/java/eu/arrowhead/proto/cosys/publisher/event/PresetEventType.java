@@ -13,11 +13,8 @@ public enum PresetEventType {
     //=================================================================================================
     // elements
 
-    START_INIT( EventTypeConstants.EVENT_TYPE_START_INIT, List.of()),
-    START_RUN( EventTypeConstants.EVENT_TYPE_START_RUN, List.of() ),
     REQUEST_RECEIVED( EventTypeConstants.EVENT_TYPE_REQUEST_RECEIVED, List.of() ),
     PUBLISHER_DESTROYED( EventTypeConstants.EVENT_TYPE_PUBLISHER_DESTROYED, List.of() );
-    //PUBLISH_OFFER( EventTypeConstants.EVENT_TYPE_PUBLISH_OFFER, List.of());
 
     //=================================================================================================
     // members

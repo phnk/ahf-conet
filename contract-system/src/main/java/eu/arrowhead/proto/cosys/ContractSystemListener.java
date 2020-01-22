@@ -12,6 +12,8 @@ import eu.arrowhead.common.dto.shared.SystemRequestDTO;
 import eu.arrowhead.common.exception.ArrowheadException;
 import eu.arrowhead.proto.cosys.database.DbItem;
 import eu.arrowhead.proto.cosys.security.ContractSecurityConfig;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -70,6 +72,9 @@ public class ContractSystemListener extends ApplicationInitListener {
             setTokenSecurityFilter();
         }
 
+        checkCoreSystemReachability(CoreSystem.ORCHESTRATOR);
+        arrowheadService.updateCoreServiceURIs(CoreSystem.ORCHESTRATOR);
+
         // Register all the services
         // Offer
         final ServiceRegistryRequestDTO offerServiceRequest = createServiceRegistryRequest(ContractSystemConstants.OFFER_NAME, ContractSystemConstants.OFFER_URI, HttpMethod.POST);
@@ -119,7 +124,6 @@ public class ContractSystemListener extends ApplicationInitListener {
         if (tokenSecurityFilterEnabled) {
             systemRequest.setAuthenticationInfo(Base64.getEncoder().encodeToString(arrowheadService.getMyPublicKey().getEncoded()));
             serviceRegistryRequest.setSecure(ServiceSecurityType.TOKEN);
-            serviceRegistryRequest.setSecure(ServiceSecurityType.NOT_SECURE);
             serviceRegistryRequest.setInterfaces(List.of(ContractSystemConstants.INTERFACE_SECURE));
         } else if (sslEnabled) {
             systemRequest.setAuthenticationInfo(Base64.getEncoder().encodeToString(arrowheadService.getMyPublicKey().getEncoded()));

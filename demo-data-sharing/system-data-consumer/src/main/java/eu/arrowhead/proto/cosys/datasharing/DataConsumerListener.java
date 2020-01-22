@@ -19,6 +19,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.http.HttpMethod;
@@ -41,6 +42,9 @@ public class DataConsumerListener extends ApplicationInitListener {
     @Autowired
     private ConsumerSecurityConfig consumerSecurityConfig;
 
+    @Autowired
+    private ApplicationContext applicationContext;
+
     @Value(ClientCommonConstants.$CLIENT_SYSTEM_NAME)
     private String mySystemName;
 
@@ -59,6 +63,11 @@ public class DataConsumerListener extends ApplicationInitListener {
     @Bean(DataConsumerConstants.ACCEPTED_ITEM_LIST)
     public ArrayList<AcceptedItem> getAcceptedItems() {
         return new ArrayList<>();
+    }
+
+    @Bean(DataConsumerConstants.SUB_TASK)
+    public DataConsumerCLI getCLI() {
+        return new DataConsumerCLI();
     }
 
     private final Logger logger = LogManager.getLogger(DataConsumerController.class);
@@ -86,6 +95,10 @@ public class DataConsumerListener extends ApplicationInitListener {
 
         final ServiceRegistryRequestDTO acceptRelayRequest = createServiceRegistryRequest(DataConsumerConstants.ACCEPT_NAME, DataConsumerConstants.ACCEPT_URI, HttpMethod.POST);
         arrowheadService.forceRegisterServiceToServiceRegistry(acceptRelayRequest);
+
+        final DataConsumerCLI cliThread = applicationContext.getBean(DataConsumerConstants.SUB_TASK, DataConsumerCLI.class);
+        applicationContext.getAutowireCapableBeanFactory().autowireBean(cliThread);
+        cliThread.start();
     }
 
     // helpers
@@ -120,7 +133,6 @@ public class DataConsumerListener extends ApplicationInitListener {
         if (tokenSecurityFilterEnabled) {
             systemRequest.setAuthenticationInfo(Base64.getEncoder().encodeToString(arrowheadService.getMyPublicKey().getEncoded()));
             serviceRegistryRequest.setSecure(ServiceSecurityType.TOKEN);
-            serviceRegistryRequest.setSecure(ServiceSecurityType.NOT_SECURE);
             serviceRegistryRequest.setInterfaces(List.of(DataConsumerConstants.INTERFACE_SECURE));
         } else if (sslEnabled) {
             systemRequest.setAuthenticationInfo(Base64.getEncoder().encodeToString(arrowheadService.getMyPublicKey().getEncoded()));
