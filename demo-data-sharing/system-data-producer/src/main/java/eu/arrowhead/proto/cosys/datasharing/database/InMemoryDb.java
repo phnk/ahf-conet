@@ -24,9 +24,6 @@ public class InMemoryDb {
                 e.printStackTrace();
             }
         }
-
-        // subscribe to a event
-
     }
 
     public synchronized void putIntoHashTable(String key, String value) {

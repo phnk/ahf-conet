@@ -50,15 +50,21 @@ public class DataConsumerCLI extends Thread {
 
             String[] split = text.split(" ");
 
-            if (split.length == 3 && split[0].equalsIgnoreCase("1")) {
-                requestData(split[1], Integer.parseInt(split[2]));
-            } else if (split.length == 2 && split[0].equalsIgnoreCase("2")) {
-                logger.info(getData(split[1]));
-            } else if (split[0].equalsIgnoreCase("exit")) {
-                logger.info("exiting..");
-            } else {
-                logger.warn("enter valid string");
+            try {
+                if (split.length == 3 && split[0].equalsIgnoreCase("1")) {
+                    requestData(split[1], Integer.parseInt(split[2]));
+                } else if (split.length == 2 && split[0].equalsIgnoreCase("2")) {
+                    logger.info(getData(split[1]));
+                } else if (split[0].equalsIgnoreCase("exit")) {
+                    logger.info("exiting..");
+                } else {
+                    logger.warn("enter valid string");
+                }
+            } catch(Exception e) {
+                logger.warn("something went wrong");
+                logger.warn(e.toString());
             }
+
         }
     }
 
@@ -135,6 +141,7 @@ public class DataConsumerCLI extends Thread {
         final OrchestrationFormRequestDTO orchestrationFormRequest = orchestrationFormBuilder.requestedService(serviceQueryForm)
                 .flag(OrchestrationFlags.Flag.MATCHMAKING, true)
                 .flag(OrchestrationFlags.Flag.OVERRIDE_STORE, true)
+                .flag(OrchestrationFlags.Flag.ENABLE_INTER_CLOUD, true)
                 .build();
 
         final OrchestrationResponseDTO orchestrationResponse = arrowheadService.proceedOrchestration(orchestrationFormRequest);

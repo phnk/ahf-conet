@@ -104,7 +104,6 @@ public class ContractSystemController {
         return null;
     }
 
-    // TODO: change to go through the gatekeeper/gateway
     public void relayRejectRequest(DbItem dbItem) {
 
         OrchestrationResultDTO orchestrationResult = getService("reject-relay");
@@ -124,7 +123,6 @@ public class ContractSystemController {
                 );
     }
 
-    // TODO: change to go through the gatekeeper/gateway
     public void relayAcceptRequest(DbItem dbItem, String producerName, String producerAddress, String producerPort, String serviceUri) {
 
         OrchestrationResultDTO orchestrationResult = getService("accept-relay");
